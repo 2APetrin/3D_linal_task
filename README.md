@@ -1,1 +1,1 @@
-# 3D_linal_task
+# 3d_triangles
