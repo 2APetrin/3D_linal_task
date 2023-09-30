@@ -21,6 +21,8 @@ class plane_t
 
     double calc_point(const point_t &pnt) const;
 
+    bool is_valid() const;
+
 
     double get_a() const;
     double get_b() const;

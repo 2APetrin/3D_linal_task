@@ -22,8 +22,14 @@ class segment_t
 
     bool is_valid() const;
 
+    /**
+     * works only for segments that are lying on intersecting lines. Otherwise error
+    */
     point_t intersect_line(const line_t &line) const;
 
+    /**
+     * works only for segments that are lying on intersecting lines. Otherwise error
+    */
     bool intersects_seg(const segment_t &seg2) const;
 };
 
