@@ -66,7 +66,7 @@ line_t plane_t::get_intersection(const plane_t &plane) const
 
 double plane_t::calc_point(const point_t &pnt) const
 {
-    std::cout << "calc pnt - " << a_ * pnt.get_x() + b_ * pnt.get_y() + c_ * pnt.get_z() + d_ << std::endl;
+    //std::cout << "calc pnt - " << a_ * pnt.get_x() + b_ * pnt.get_y() + c_ * pnt.get_z() + d_ << std::endl;
     return a_ * pnt.get_x() + b_ * pnt.get_y() + c_ * pnt.get_z() + d_;
 }
 

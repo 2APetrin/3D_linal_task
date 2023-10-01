@@ -31,7 +31,7 @@ bool triangle_t::intersects(const triangle_t &triag2) const
 
     mutual_pos plane_pos_type = plane_.get_mutual_pos_type(triag2.plane_, A_);
 
-    std::cout << "plane pos type = " << (int)plane_pos_type << std::endl << std::endl;
+    //std::cout << "plane pos type = " << (int)plane_pos_type << std::endl << std::endl;
 
     if (plane_pos_type == INTERSECT) return check_triags_in_intersect_planes(triag2);
     if (plane_pos_type == EQUAL)     return check_triags_in_same_plane(triag2);
@@ -63,12 +63,12 @@ bool triangle_t::check_triags_in_intersect_planes(const triangle_t &triag2) cons
 
     if (!check_triag_intersect_plane(triag2))
     {
-        std::cout << "check_triag_intersect_plane worked" << std::endl;
+        //std::cout << "check_triag_intersect_plane worked" << std::endl;
         return false;
     }
 
     line_t inter_line{plane_.get_intersection(triag2.plane_)};
-    inter_line.print();
+    //inter_line.print();
 
     segment_t seg1{get_triag_intersection(inter_line)},
               seg2{triag2.get_triag_intersection(inter_line)};
@@ -82,15 +82,15 @@ segment_t triangle_t::get_triag_intersection(const line_t &line) const
     ASSERT(is_valid());
     ASSERT(line.is_valid());
 
-    std::cout << "\nintersection points:\n";
+    //std::cout << "\nintersection points:\n";
 
     int valid_cnt = 0;
     point_t p1{AB_.intersect_line(line)};
-    if (p1.is_valid()) { p1.print(); valid_cnt++; }
+    if (p1.is_valid()) { /* p1.print(); */ valid_cnt++; }
     point_t p2{BC_.intersect_line(line)};
-    if (p2.is_valid()) { p2.print(); valid_cnt++; }
+    if (p2.is_valid()) { /* p2.print(); */ valid_cnt++; }
     point_t p3{CA_.intersect_line(line)};
-    if (p3.is_valid()) { p3.print(); valid_cnt++; }
+    if (p3.is_valid()) { /* p3.print(); */ valid_cnt++; }
 
     if (valid_cnt < 2) return {{NAN, NAN, NAN}, {NAN, NAN, NAN}};
 
