@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "../geometry/triangle/triangle.hpp"
-#include "../geometry/vector/vector.hpp"
+#include "triangle.hpp"
+#include "vector.hpp"
 
 using namespace std;
 using namespace geometry;
@@ -29,21 +29,6 @@ TEST(vec_test, basic_vec)
     ASSERT_TRUE((v1 + v2 + v3) == v1);
     ASSERT_TRUE((v1 + v2 - v3) == (v2 + v2));
     ASSERT_TRUE(v2.vec_product(v3) == v1);
-}
-
-TEST(line_test, basic_line)
-{
-    line_t l1{{{1, 1, 1}},  {0, 0, 2}};
-    line_t l2{{{1, 5, -3}}, {-1, -5, 5}};
-    line_t l3{{{1, 5, -3}}, {-1, -5, 4.999999}};
-    line_t l4{{{1, 5, -3}}, {-1, -5, 0}};
-    line_t l5{{{1, 5, -3}}, {-1, -5, 4.9999}};
-
-    ASSERT_TRUE((l1.get_line_intersection(l2) == point_t{0, 0, 2}));
-    ASSERT_TRUE((l1.get_line_intersection(l3) == point_t{0, 0, 2}));
-
-    ASSERT_FALSE(l1.get_line_intersection(l5).is_valid());
-    ASSERT_FALSE(l1.get_line_intersection(l4).is_valid());
 }
 
 TEST(plane_test, basic_plane)

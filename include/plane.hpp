@@ -1,5 +1,6 @@
 #pragma once
-#include "../line/line.hpp"
+
+#include "line.hpp"
 
 
 namespace geometry {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../include/double_operations/double_operations.hpp"
+#include "double_operations.hpp"
 #include <cmath>
 
 namespace geometry {
@@ -19,7 +19,7 @@ class point_t
     public:
 
     point_t(double x = NAN, double y = NAN, double z = NAN);
-    point_t(const point_t &pnt);
+    point_t(const point_t  &pnt);
 
     bool is_valid() const;
 
@@ -27,10 +27,9 @@ class point_t
 
     bool operator!= (const point_t &pnt) const;
 
-    void print() const;
+    bool special_check() const;
 
-
-
+    void   print() const;
     double get_x() const;
     double get_y() const;
     double get_z() const;
