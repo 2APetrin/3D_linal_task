@@ -31,10 +31,15 @@ struct node_position
 
     node_position(double x, double y, double z, double x_rad, double y_rad, double z_rad) :
     x_(x), y_(y), z_(z), x_rad_(x_rad), y_rad_(y_rad), z_rad_(z_rad) {}
+
+    void print() const
+    {
+        std::cout << "center   = (" << x_ << ", " << y_ << ", " << z_ << ")\n";
+        std::cout << "radiuses = " << x_rad_ << ", " << y_rad_ << ", " << z_rad_ << "\n";
+    }
 };
 
 
-class octree_t;
 
 enum cube_positions
 {
@@ -60,7 +65,8 @@ struct max_min_crds_t
     double z_min = std::numeric_limits<double>::infinity();
     double z_max = -z_min;
 
-    void update(double x, double y, double z) {
+    void update(double x, double y, double z)
+    {
         if (x < x_min) x_min = x;
         if (x > x_max) x_max = x;
         if (y < y_min) y_min = y;
@@ -68,7 +74,16 @@ struct max_min_crds_t
         if (z < z_min) z_min = z;
         if (z > z_max) z_max = z;
     }
+
+    void print()
+    {
+        std::cout << "xmin = " << x_min << "\nxmax = " << x_max << "\n";
+        std::cout << "ymin = " << y_min << "\nymax = " << y_max << "\n";
+        std::cout << "zmin = " << z_min << "\nzmax = " << z_max << "\n";
+    }
 };
+
+class octree_t;
 
 class node_t
 {
@@ -82,21 +97,24 @@ class node_t
                                       plane_t{{0, 0, 1}, {0, 0, pos_.z_}}};
 
     std::array<node_t*, 8>      children_;
-    std::array<triag_vector, 8> triangle_vectors_;
-    octree_t* tree_ = nullptr;
+    std::array<triag_vector, 9> triangle_vectors_;
 
     public:
 
     size_t       triag_num_ = 0;
     triag_vector triags_;
 
-    node_t(node_t* parent = nullptr, node_position pos, triag_vector triags) : parent_(parent), pos_(pos), triags_(triags)
+    node_t(node_t* parent, node_position pos, triag_vector triags, octree_t* tree = nullptr) : parent_(parent), pos_(pos), triags_(triags)
     {
         triag_num_ = triags.size();
-        std::cout << "shitty size method - " << triag_num_;
-        if (triag_num_ > SIZE_OF_PART) return;
 
-        if (parent) tree_ = parent->tree_;
+        if (triag_num_ < SIZE_OF_PART)
+        {
+            std::cout << "LEAF:\n";
+            print();
+            return;
+        }
+        isleaf_ = false;
 
         double next_xrad = pos_.x_rad_ / 2;
         double next_yrad = pos_.y_rad_ / 2;
@@ -107,6 +125,8 @@ class node_t
             triag_emplace(*it);
         }
 
+        print();
+
         children_[0] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[0]};
         children_[1] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[1]};
         children_[2] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ - pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[2]};
@@ -116,8 +136,6 @@ class node_t
         children_[5] = new node_t{this, node_position{pos_.x_ - pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[5]};
         children_[6] = new node_t{this, node_position{pos_.x_ - pos_.x_rad_/2, pos_.y_ - pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[6]};
         children_[7] = new node_t{this, node_position{pos_.x_ - pos_.x_rad_/2, pos_.y_ - pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[7]};
-
-        isleaf_ = false;
     }
 
     ~node_t()
@@ -132,7 +150,15 @@ class node_t
     void print() const
     {
         std::cout << "isleaf = " << isleaf_ << std::endl;
-        std::cout << "parent = " << parent_ << "this = " << this << std::endl;
+        std::cout << "parent = " << parent_ << " this = " << this << std::endl;
+        std::cout << "number of elements = " << triag_num_ << std::endl;
+        std::cout << "numer of triags in border = " << triangle_vectors_[8].size() << std::endl;
+        pos_.print();
+
+        for (int i = 0; i < 3; i++) planes_[i].print();
+
+
+        std::cout << "\n\n";
     }
 
 
@@ -140,40 +166,31 @@ class node_t
     {
         cube_positions triag_pos = check_triangle(triag);
 
-        if (triag_pos == BORDER)
-        {
-            tree_->border_triags_.insert(triag);
-            return;
-        }
-
         triangle_vectors_[triag_pos].push_back(triag);
     }
 
     cube_positions check_triangle(triag_id_t triag) const
     {
-        double res01 = planes_[0].calc_point(triag.triag.getA());
-        double res02 = planes_[0].calc_point(triag.triag.getB());
-        double res03 = planes_[0].calc_point(triag.triag.getC());
+        std::array<std::array<double, 3>, 3> res;
 
-        double res11 = planes_[1].calc_point(triag.triag.getA());
-        double res12 = planes_[1].calc_point(triag.triag.getB());
-        double res13 = planes_[1].calc_point(triag.triag.getC());
+        for (int i = 0; i < 3; i++)
+        {
+            res[i][0] = planes_[i].calc_point(triag.triag.getA());
+            res[i][1] = planes_[i].calc_point(triag.triag.getB());
+            res[i][2] = planes_[i].calc_point(triag.triag.getC());
+        }
 
-        double res21 = planes_[2].calc_point(triag.triag.getA());
-        double res22 = planes_[2].calc_point(triag.triag.getB());
-        double res23 = planes_[2].calc_point(triag.triag.getC());
+        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return ZERO;
+        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return FRST;
 
-        if (all_positive(res01, res02, res03), all_positive(res11, res12, res13), all_positive(res21, res22, res23)) return ZERO;
-        if (all_positive(res01, res02, res03), all_positive(res11, res12, res13), all_negative(res21, res22, res23)) return FRST;
+        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return SEC;
+        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return THIRD;
 
-        if (all_positive(res01, res02, res03), all_negative(res11, res12, res13), all_positive(res21, res22, res23)) return SEC;
-        if (all_positive(res01, res02, res03), all_negative(res11, res12, res13), all_negative(res21, res22, res23)) return THIRD;
+        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return FOUR;
+        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return FIFTH;
 
-        if (all_negative(res01, res02, res03), all_positive(res11, res12, res13), all_positive(res21, res22, res23)) return FOUR;
-        if (all_negative(res01, res02, res03), all_positive(res11, res12, res13), all_negative(res21, res22, res23)) return FIFTH;
-
-        if (all_negative(res01, res02, res03), all_negative(res11, res12, res13), all_positive(res21, res22, res23)) return SIXTH;
-        if (all_negative(res01, res02, res03), all_negative(res11, res12, res13), all_negative(res21, res22, res23)) return SEVENTH;
+        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return SIXTH;
+        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return SEVENTH;
 
         return BORDER;
     }
@@ -205,13 +222,20 @@ class octree_t
             min_max.update(C.get_x(), C.get_y(), C.get_z());
         }
 
+        min_max.print();
+
         root_ = new node_t{nullptr, {(min_max.x_max + min_max.x_min)/2, (min_max.y_max + min_max.y_min)/2, (min_max.z_max + min_max.z_min)/2,
-                                    (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2}, all_triags_};
+                                     (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2}, all_triags_, this};
     }
 
     ~octree_t()
     {
         delete root_;
+    }
+
+    void print()
+    {
+        root_->print();
     }
 };
 

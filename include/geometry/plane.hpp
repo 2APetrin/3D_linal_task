@@ -24,6 +24,8 @@ class plane_t
 
     bool is_valid() const;
 
+    void print() const;
+
 
     double get_a() const;
     double get_b() const;

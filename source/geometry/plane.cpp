@@ -32,6 +32,17 @@ mutual_pos plane_t::get_mutual_pos_type(const plane_t &pln, const point_t &pnt) 
 }
 
 
+void plane_t::print() const
+{
+    std::cout << "PLANE\nnorm vec = ";
+
+    norm_vec_.print();
+
+    std::cout << "point = ";
+    plane_pnt_.print();
+}
+
+
 line_t plane_t::get_intersection(const plane_t &plane2) const
 {
     ASSERT(is_valid());
