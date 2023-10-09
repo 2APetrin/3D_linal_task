@@ -21,6 +21,7 @@ struct triag_id_t
     size_t     id;
 };
 
+
 using triag_vector = std::vector<triag_id_t>;
 
 
@@ -40,7 +41,6 @@ struct node_position
 };
 
 
-
 enum cube_positions
 {
     ZERO    = 0,
@@ -53,6 +53,7 @@ enum cube_positions
     SEVENTH = 7,
     BORDER  = 8
 };
+
 
 struct max_min_crds_t
 {
@@ -83,7 +84,12 @@ struct max_min_crds_t
     }
 };
 
+
 class octree_t;
+
+
+using ans_set_t = typename std::set<size_t>;
+
 
 class node_t
 {
@@ -99,6 +105,8 @@ class node_t
     std::array<node_t*, 8>      children_;
     std::array<triag_vector, 9> triangle_vectors_;
 
+    ans_set_t collision_ans_;
+
     public:
 
     size_t       triag_num_ = 0;
@@ -110,8 +118,8 @@ class node_t
 
         if (triag_num_ < SIZE_OF_PART)
         {
-            std::cout << "LEAF:\n";
-            print();
+            /* std::cout << "LEAF:\n";
+            print(); */
             return;
         }
         isleaf_ = false;
@@ -125,7 +133,7 @@ class node_t
             triag_emplace(*it);
         }
 
-        print();
+        //print();
 
         children_[0] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[0]};
         children_[1] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[1]};
@@ -153,9 +161,9 @@ class node_t
         std::cout << "parent = " << parent_ << " this = " << this << std::endl;
         std::cout << "number of elements = " << triag_num_ << std::endl;
         std::cout << "numer of triags in border = " << triangle_vectors_[8].size() << std::endl;
-        pos_.print();
+        //pos_.print();
 
-        for (int i = 0; i < 3; i++) planes_[i].print();
+        //for (int i = 0; i < 3; i++) planes_[i].print();
 
 
         std::cout << "\n\n";
@@ -194,6 +202,62 @@ class node_t
 
         return BORDER;
     }
+
+
+    ans_set_t get_collisions()
+    {
+        if (isleaf_)
+        {
+            ans_set_t ans;
+            for (auto it = triags_.begin(); it != triags_.end(); it++)
+            {
+                for (auto jt = std::next(it); jt != triags_.end(); jt++)
+                {
+                    if (it->triag.intersects(jt->triag))
+                    {
+                        ans.emplace(it->id);
+                        ans.emplace(jt->id);
+                    }
+                }
+            }
+
+            /* std::cout << "collisions:\n";
+            for (auto it = ans.begin(); it != ans.end(); it++)
+                std::cout << *it << std::endl; */
+
+            return ans;
+        }
+
+        std::array<ans_set_t, 8> asn_arr;
+        ans_set_t ans;
+
+        for (int i = 0; i < 8; i++)
+        {
+            asn_arr[i] = children_[i]->get_collisions();
+            ans.merge(asn_arr[i]);
+
+            /* std::cout << "\n\nmerged children:\n";
+            for (auto it = ans.begin(); it != ans.end(); it++)
+                std::cout << *it << std::endl; */
+        }
+
+        ans_set_t border_ans;
+        for (auto it = triangle_vectors_[8].begin(); it != triangle_vectors_[8].end(); it++)
+        {
+            for (auto jt = triags_.begin(); jt != triags_.end(); jt++)
+            {
+                if (it->id == jt->id) continue;
+                if (it->triag.intersects(jt->triag))
+                {
+                    border_ans.emplace(it->id);
+                    border_ans.emplace(jt->id);
+                }
+            }
+        }
+        ans.merge(border_ans);
+
+        return ans;
+    }
 };
 
 
@@ -222,7 +286,7 @@ class octree_t
             min_max.update(C.get_x(), C.get_y(), C.get_z());
         }
 
-        min_max.print();
+        //min_max.print();
 
         root_ = new node_t{nullptr, {(min_max.x_max + min_max.x_min)/2, (min_max.y_max + min_max.y_min)/2, (min_max.z_max + min_max.z_min)/2,
                                      (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2}, all_triags_, this};
@@ -236,6 +300,11 @@ class octree_t
     void print()
     {
         root_->print();
+    }
+
+    ans_set_t get_collisions()
+    {
+        return root_->get_collisions();
     }
 };
 

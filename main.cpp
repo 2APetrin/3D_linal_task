@@ -32,9 +32,19 @@ int main()
     else
         std::cerr << "Triangle number should be greater than 0" << std::endl;
 
-    std::set<int> number_set;
+    const std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now();
 
-    octrees::octree_t octree(triags);
+    octrees::octree_t  octree(triags);
+    octrees::ans_set_t ans{octree.get_collisions()};
+
+    const auto end = std::chrono::high_resolution_clock::now();
+
+    const auto mk_s = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    const double s = mk_s / 1000.0;
+    std::cout << "time in sec - " << s << std::endl;
+
+    for (auto it = ans.begin(); it != ans.end(); it++)
+        std::cout << *it << std::endl;
 
     return 0;
 }
