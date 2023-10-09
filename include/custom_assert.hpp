@@ -1,6 +1,9 @@
 #pragma once
-
 #include <iostream>
+
+
+
+#ifndef RELEASE
 
 #define ASSERT(cond)                      \
 if (!(cond))                               \
@@ -11,3 +14,9 @@ if (!(cond))                               \
     << " in file "     << __FILE__ << "\n\n";   \
     abort();                                     \
 }
+#endif
+
+#ifdef RELEASE
+#define ASSERT(cond) 
+#undef RELRASE
+#endif

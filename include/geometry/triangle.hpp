@@ -16,8 +16,6 @@ class triangle_t
 
     bool check_triags_in_intersect_planes(const triangle_t &triag2, const plane_t &pln1, const plane_t &pln2) const;
 
-    bool check_triag_intersect_plane(const triangle_t &triag2, const plane_t &pln1, const plane_t &pln2) const;
-
     bool check_triags_in_same_plane(const triangle_t &triag2) const;
 
     segment_t get_triag_intersection(const line_t &line) const;
@@ -34,9 +32,15 @@ class triangle_t
 
     bool is_valid() const;
 
+    bool check_triag_intersect_plane(const triangle_t &triag2, const plane_t &pln1, const plane_t &pln2) const;
+
     void print() const;
 
     bool intersects(const triangle_t &triag2) const;
+
+    point_t getA() const;
+    point_t getB() const;
+    point_t getC() const;
 };
 
 }

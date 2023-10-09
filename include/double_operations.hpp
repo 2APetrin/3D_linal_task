@@ -9,3 +9,7 @@ double triple_max(const double &num1, const double &num2, const double &num3);
 
 bool gr_or_eq(const double &num1, const double &num2);
 bool ls_or_eq(const double &num1, const double &num2);
+
+bool all_positive(const double &num1, const double &num2, const double &num3);
+bool all_negative(const double &num1, const double &num2, const double &num3);
+

@@ -22,3 +22,13 @@ bool ls_or_eq(const double &num1, const double &num2)
 {
     return num1 < num2 || is_equal(num1, num2);
 }
+
+
+bool all_positive(const double &num1, const double &num2, const double &num3)
+{
+    return (num1 > 0) && (num2 > 0) && (num3 > 0);
+}
+bool all_negative(const double &num1, const double &num2, const double &num3)
+{
+    return (num1 < 0) && (num2 < 0) && (num3 < 0);
+}

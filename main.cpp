@@ -1,6 +1,7 @@
 #include "triangle.hpp"
 #include "point.hpp"
 #include "vector.hpp"
+#include "octree.hpp"
 #include <iostream>
 #include <vector>
 #include "chrono"
@@ -37,14 +38,15 @@ int main()
 
     for (int i = 0; i < triag_num; i++)
     {
+        triangle_t triag_i = triags[i];
+
         for (int j = i+1; j < triag_num; j++)
         {
-            if (i != j)
-                if (triags[i].intersects(triags[j]))
-                {
-                    number_set.insert(i);
-                    number_set.insert(j);
-                }
+            if (triag_i.intersects(triags[j]))
+            {
+                number_set.insert(i);
+                number_set.insert(j);
+            }
         }
     }
 

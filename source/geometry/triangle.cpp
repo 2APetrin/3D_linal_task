@@ -45,17 +45,22 @@ bool triangle_t::intersects(const triangle_t &triag2) const
     ASSERT(triag2.is_valid());
 
     double distance_squared_x9 = (triag2.get_center_vec_x3() - get_center_vec_x3()).get_squared_len();
-    double bounding_sphere_radius = get_bounding_sphere_radius();
-    double bounding_sphere_radius_squared = bounding_sphere_radius * bounding_sphere_radius;
+    double bounding_sphere_radius_squared = get_bounding_sphere_radius();
 
-    if (distance_squared_x9 > 9 * bounding_sphere_radius_squared) return false;
+    if (distance_squared_x9 > 9 * bounding_sphere_radius_squared)
+        return false;
 
     plane_t pln1 = get_plane();
     plane_t pln2 = triag2.get_plane();
     mutual_pos plane_pos_type = pln1.get_mutual_pos_type(pln2, A_);
 
-    if (plane_pos_type == INTERSECT) return check_triags_in_intersect_planes(triag2, pln1, pln2);
-    if (plane_pos_type == EQUAL)     return check_triags_in_same_plane(triag2);
+    switch(plane_pos_type)
+    {
+        case EQUAL:     return check_triags_in_same_plane(triag2);
+        case INTERSECT: return check_triags_in_intersect_planes(triag2, pln1, pln2);
+        case PARALLEL:  return false;
+        default:        return false;
+    }
 
     return false;
 }
@@ -65,10 +70,10 @@ double triangle_t::get_bounding_sphere_radius() const
 {
     ASSERT(is_valid());
 
-    double len_AB = std::sqrt((vector_t{B_} - vector_t{A_}).get_squared_len());
-    double len_AC = std::sqrt((vector_t{C_} - vector_t{A_}).get_squared_len());
+    double len_AB = (vector_t{B_} - vector_t{A_}).get_squared_len();
+    double len_AC = (vector_t{C_} - vector_t{A_}).get_squared_len();
 
-    return bound_coeff * (len_AB + len_AC);
+    return bound_coeff * 2 * (len_AB + len_AC); // неравенство о среднем
 }
 
 
@@ -201,3 +206,8 @@ bool triangle_t::check_triags_in_same_plane(const triangle_t &triag2) const
            CA1.intersects_seg(BC2) ||
            CA1.intersects_seg(CA2);
 }
+
+
+point_t triangle_t::getA() const { return A_; }
+point_t triangle_t::getB() const { return B_; }
+point_t triangle_t::getC() const { return C_; }
