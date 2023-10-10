@@ -62,6 +62,7 @@ TEST(triangle_test, triangle_basic)
     ASSERT_TRUE(tr1.intersects(tr3));
 
     triangle_t tr4{{0.25, 0.25, 0}, {0.5, 0, 0}, {0, 0.5, 0}};
+    ASSERT_TRUE(tr4.get_plane().is_valid());
     ASSERT_TRUE(tr1.intersects(tr4));
 
     triangle_t tr5{{0.25, 0.25, 1}, {0.5, 0, 1}, {0, 0.5, 1}};
@@ -72,6 +73,27 @@ TEST(triangle_test, triangle_basic)
 
     triangle_t tr7{{0.25, 0.25, -0.5}, {0.5, 0, 1}, {0, 0.5, 1}};
     ASSERT_TRUE(tr1.intersects(tr7));
+}
+
+TEST(bad_plane, pln_test)
+{
+    triangle_t t001({-3078.3, -8662.3, 9288.5}, {-3116.2, -8620.4, 9264.1}, {-3107.9, -8635, 9274.9});
+
+    ASSERT_TRUE(t001.get_plane().is_valid());
+}
+
+TEST(bad_triag, tr_test)
+{
+    triangle_t t001({-3078.3, -8662.3, 9288.5}, {-3116.2, -8620.4, 9264.1}, {-3107.9, -8635, 9274.9});
+    triangle_t t002({-3017.4, -8572.8, 9388.3}, {-3004, -8533.7, 9351.3}, {-3128.9, -8635.9, 9252.9});
+
+    ASSERT_TRUE(t001.intersects(t002));
+
+    triangle_t t3({0,0,0}, {100, 0,0}, {100, 1, 0});
+    triangle_t t4({1, -1, -1}, {1, 0,1}, {1, 1, -1});
+
+    ASSERT_TRUE(t3.intersects(t4));
+    ASSERT_TRUE(t4.intersects(t3));
 }
 
 int main(int argc, char **argv)

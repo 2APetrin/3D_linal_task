@@ -45,7 +45,7 @@ bool triangle_t::intersects(const triangle_t &triag2) const
     ASSERT(triag2.is_valid());
 
     double distance_squared_x9 = (triag2.get_center_vec_x3() - get_center_vec_x3()).get_squared_len();
-    double bounding_sphere_radius_squared = get_bounding_sphere_radius();
+    double bounding_sphere_radius_squared = get_bounding_sphere_radius(triag2);
 
     if (distance_squared_x9 > 9 * bounding_sphere_radius_squared)
         return false;
@@ -66,14 +66,20 @@ bool triangle_t::intersects(const triangle_t &triag2) const
 }
 
 
-double triangle_t::get_bounding_sphere_radius() const
+double triangle_t::get_bounding_sphere_radius(const triangle_t &triag2) const
 {
     ASSERT(is_valid());
 
     double len_AB = (vector_t{B_} - vector_t{A_}).get_squared_len();
     double len_AC = (vector_t{C_} - vector_t{A_}).get_squared_len();
 
-    return bound_coeff * 2 * (len_AB + len_AC); // неравенство о среднем
+    double len_AB1 = (vector_t{triag2.B_} - vector_t{triag2.A_}).get_squared_len();
+    double len_AC1 = (vector_t{triag2.C_} - vector_t{triag2.A_}).get_squared_len();
+
+    double first_part  = bound_coeff * 2 * (len_AB + len_AC);
+    double second_part = bound_coeff * 2 * (len_AB1 + len_AC1);
+
+    return first_part + second_part;
 }
 
 

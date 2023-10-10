@@ -1,8 +1,6 @@
 #pragma once
 #include <iostream>
 
-
-
 #ifndef RELEASE
 
 #define ASSERT(cond)                      \

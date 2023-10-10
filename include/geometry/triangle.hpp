@@ -6,7 +6,7 @@
 
 namespace geometry {
 
-const double bound_coeff = 0.6; // it's min coeff squared to bound triangles by it's longest segment
+const double bound_coeff = 0.36; // it's min coeff squared (0.6 * 0.6) to bound triangles by it's longest segment
 
 class triangle_t
 {
@@ -22,11 +22,11 @@ class triangle_t
 
     vector_t get_center_vec_x3() const;
 
-    double get_bounding_sphere_radius() const;
-
-    plane_t get_plane() const;
+    double get_bounding_sphere_radius(const triangle_t &triag2) const;
 
     public:
+
+    plane_t get_plane() const;
 
     triangle_t(const point_t &A, const point_t &B, const point_t &C);
 

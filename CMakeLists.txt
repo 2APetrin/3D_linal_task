@@ -21,5 +21,6 @@ add_subdirectory(./tests)
 
 target_include_directories(triag     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/geometry)
 target_include_directories(test_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/geometry)
+
 target_include_directories(triag     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(test_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

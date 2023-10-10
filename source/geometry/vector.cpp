@@ -74,6 +74,9 @@ vector_t vector_t::normalized() const
     ASSERT(is_valid());
 
     double len = std::sqrt(get_squared_len());
+    if (is_equal(len, 0))
+        return *this;
+
     return vector_t{x_/len, y_/len, z_/len};
 }
 

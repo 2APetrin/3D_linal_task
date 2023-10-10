@@ -12,7 +12,7 @@ using namespace geometry;
 namespace octrees{
 
 
-const size_t SIZE_OF_PART = 1000;
+const size_t SIZE_OF_PART = 100;
 
 
 struct triag_id_t
@@ -117,11 +117,8 @@ class node_t
         triag_num_ = triags.size();
 
         if (triag_num_ < SIZE_OF_PART)
-        {
-            /* std::cout << "LEAF:\n";
-            print(); */
             return;
-        }
+
         isleaf_ = false;
 
         double next_xrad = pos_.x_rad_ / 2;
@@ -132,8 +129,6 @@ class node_t
         {
             triag_emplace(*it);
         }
-
-        //print();
 
         children_[0] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[0]};
         children_[1] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[1]};
@@ -221,10 +216,6 @@ class node_t
                 }
             }
 
-            /* std::cout << "collisions:\n";
-            for (auto it = ans.begin(); it != ans.end(); it++)
-                std::cout << *it << std::endl; */
-
             return ans;
         }
 
@@ -235,10 +226,6 @@ class node_t
         {
             asn_arr[i] = children_[i]->get_collisions();
             ans.merge(asn_arr[i]);
-
-            /* std::cout << "\n\nmerged children:\n";
-            for (auto it = ans.begin(); it != ans.end(); it++)
-                std::cout << *it << std::endl; */
         }
 
         ans_set_t border_ans;
@@ -285,8 +272,6 @@ class octree_t
             min_max.update(B.get_x(), B.get_y(), B.get_z());
             min_max.update(C.get_x(), C.get_y(), C.get_z());
         }
-
-        //min_max.print();
 
         root_ = new node_t{nullptr, {(min_max.x_max + min_max.x_min)/2, (min_max.y_max + min_max.y_min)/2, (min_max.z_max + min_max.z_min)/2,
                                      (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2}, all_triags_, this};
