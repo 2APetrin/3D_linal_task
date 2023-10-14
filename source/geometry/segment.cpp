@@ -83,3 +83,6 @@ point_t segment_t::get_plane_intersection(const plane_t &pln) const
 vector_t segment_t::get_dir_vec() const { return dir_vec_; }
 
 line_t segment_t::get_seg_line() const {return seg_line_; }
+
+const point_t& segment_t::get_fst() const { return first_; }
+const point_t& segment_t::get_snd() const { return second_; }

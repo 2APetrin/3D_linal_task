@@ -105,7 +105,11 @@ point_t plane_t::get_line_intersection(const line_t &line) const
     ASSERT(is_valid());
     ASSERT(line.is_valid());
 
-    if (is_equal(norm_vec_.sqal_product(line.get_dir_vec()), 0)) return NAN_PNT;
+    if (is_equal(norm_vec_.sqal_product(line.get_dir_vec()), 0))
+    {
+        if (is_equal(calc_point(line.get_line_pnt()), 0)) return SPEC_PNT;
+        return NAN_PNT;
+    }
 
     vector_t dir_vec = line.get_dir_vec();
     point_t pnt = line.get_line_pnt();

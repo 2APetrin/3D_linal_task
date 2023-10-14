@@ -41,12 +41,22 @@ class triangle_t
     triag_type get_triag_type() const;
 
 
-    bool intersects_triag_triag    (const triangle_t &triag2) const;
-    bool intersects_triag_segment  (const triangle_t &triag2) const;
-    bool intersects_triag_point    (const triangle_t &triag2) const;
-    bool intersects_segment_segment(const triangle_t &triag2) const;
-    bool intersects_segment_point  (const triangle_t &triag2) const;
-    bool intersects_point_point    (const triangle_t &triag2) const;
+    bool intersects_triag_triag     (const triangle_t &triag2) const;
+    bool intersects_triag_segment   (const triangle_t &triag2) const;
+    bool intersects_triag_point     (const triangle_t &triag2) const;
+
+    bool intersects_segment_segment (const triangle_t &triag2) const;
+    bool intersects_segment_point   (const triangle_t &triag2) const;
+    bool intersects_point_point     (const triangle_t &triag2) const;
+
+    /* bool intersects_in_same_plane   (const triangle_t &triag2) const;
+
+    bool intersects_same_triag_triag  (const triangle_t &triag2) const;
+    bool intersects_same_triag_segment(const triangle_t &triag2) const;
+    bool intersects_same_triag_point  (const triangle_t &triag2) const;
+
+    bool intersects_same_segment_segment(const triangle_t &triag2) const;
+    bool intersects_same_segment_point  (const triangle_t &triag2) const; */
 
     bool check_triag_intersect_plane(const triangle_t &triag2) const;
 

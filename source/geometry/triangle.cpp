@@ -21,9 +21,11 @@ triag_type triangle_t::get_triag_type() const
 {
     ASSERT(is_valid());
 
-    if ((A_ != B_) && (B_ != C_) && (C_ != A_)) return TRIAG;
     if ((A_ == B_) && (B_ == C_)) return POINT;
-    return SEGMENT;
+    if ((vector_t{B_} - vector_t{A_}).vec_product(vector_t{C_} - vector_t{A_}) == NULL_VEC ||
+        (vector_t{B_} - vector_t{A_}).vec_product(vector_t{C_} - vector_t{B_}) == NULL_VEC ||
+        (vector_t{C_} - vector_t{A_}).vec_product(vector_t{C_} - vector_t{B_}) == NULL_VEC) return SEGMENT;
+    return TRIAG;
 }
 
 
@@ -32,7 +34,7 @@ bool triangle_t::is_valid() const { return (A_.is_valid() && B_.is_valid() && C_
 
 void triangle_t::print() const
 {
-    std::cout << "\ntriangle:" << std::endl;
+    std::cout << "\ntriangle: " << "type " << type_ << std::endl;
     std::cout << "A = ";
     A_.print();
     std::cout << "B = ";
@@ -46,6 +48,9 @@ bool triangle_t::intersects(const triangle_t &triag2) const
 {
     ASSERT(is_valid());
     ASSERT(triag2.is_valid());
+
+    print();
+    triag2.print();
 
     double distanced_squared_x9 = (center_x3_ - triag2.center_x3_).get_squared_len();
     if (distanced_squared_x9 > 18 * (bounding_radius_squared_ + triag2.bounding_radius_squared_)) return false;
@@ -98,6 +103,7 @@ bool triangle_t::intersects_segment_point(const triangle_t &triag2) const
 {
     segment_t seg1 = get_segment();
     point_t pnt = {triag2.center_x3_.get_x() / 3, triag2.center_x3_.get_y() / 3, triag2.center_x3_.get_z() / 3};
+    pnt.print();
 
     if ( !seg1.get_seg_line().check_point_belong(pnt) ) return false;
 
@@ -139,6 +145,21 @@ bool triangle_t::intersects_triag_segment(const triangle_t &triag2) const
     segment_t seg = triag2.get_segment();
 
     point_t pnt = pln_.get_line_intersection(seg.get_seg_line());
+
+    if ( pnt.special_check() )
+    {
+        bool cond = is_in_triag(seg.get_fst()) ||
+                    is_in_triag(seg.get_snd());
+        if (cond) return true;
+
+        segment_t AB{A_, B_},
+                  BC{B_, C_},
+                  CA{C_, A_};
+
+        return seg.intersects_seg(AB) ||
+               seg.intersects_seg(BC) ||
+               seg.intersects_seg(CA);
+    }
 
     if ( !pnt.is_valid() ) return false;
 

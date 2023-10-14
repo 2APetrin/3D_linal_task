@@ -116,9 +116,12 @@ TEST(bad_triangles, bad_triangles)
 
     triangle_t tr2{{0.25, 0.25, 1}, {0.25, 0.25, -1}, {0.25, 0.25, 1}};
     triangle_t tr3{{0.25, 0.25, 1}, {0.25, 0.25, -1}, {0.25, 0.25, 0}};
+    triangle_t tr4{{0.25, 0.25, 0}, {0.25, 0.25, 0}, {0.25, 0.25, 0}};
 
     ASSERT_TRUE(tr1.intersects(tr2));
-    ASSERT_FALSE(tr1.intersects(tr3));
+    ASSERT_TRUE(tr1.intersects(tr4));
+    ASSERT_TRUE(tr1.intersects(tr3));
+    ASSERT_TRUE(tr4.intersects(tr3));
 }
 
 int main(int argc, char **argv)

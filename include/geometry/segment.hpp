@@ -45,6 +45,9 @@ class segment_t
     vector_t get_dir_vec() const;
 
     line_t get_seg_line() const;
+
+    const point_t& get_fst() const;
+    const point_t& get_snd() const;
 };
 
 }
