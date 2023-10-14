@@ -49,9 +49,6 @@ bool triangle_t::intersects(const triangle_t &triag2) const
     ASSERT(is_valid());
     ASSERT(triag2.is_valid());
 
-    print();
-    triag2.print();
-
     double distanced_squared_x9 = (center_x3_ - triag2.center_x3_).get_squared_len();
     if (distanced_squared_x9 > 18 * (bounding_radius_squared_ + triag2.bounding_radius_squared_)) return false;
 
@@ -103,7 +100,6 @@ bool triangle_t::intersects_segment_point(const triangle_t &triag2) const
 {
     segment_t seg1 = get_segment();
     point_t pnt = {triag2.center_x3_.get_x() / 3, triag2.center_x3_.get_y() / 3, triag2.center_x3_.get_z() / 3};
-    pnt.print();
 
     if ( !seg1.get_seg_line().check_point_belong(pnt) ) return false;
 
@@ -236,10 +232,7 @@ bool triangle_t::check_triags_in_intersect_planes(const triangle_t &triag2) cons
     if (!check_triag_intersect_plane(triag2)) return false;
 
     line_t inter_line{pln_.get_intersection(triag2.pln_)};
-    if ( !inter_line.is_valid() ) {
-        std::cout << "cock\n";
-        return false;
-    }
+    if ( !inter_line.is_valid() ) return false;
 
     segment_t seg1{get_triag_intersection(inter_line)},
               seg2{triag2.get_triag_intersection(inter_line)};
