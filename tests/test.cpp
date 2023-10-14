@@ -96,8 +96,39 @@ TEST(bad_triag, tr_test)
     ASSERT_TRUE(t4.intersects(t3));
 }
 
+TEST(segnplane, plane_intersection_by_segment)
+{
+    triangle_t tr1{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
+    segment_t  seg1{{0.25, 0.25, 1}, {0.25, 0.25, -1}};
+    segment_t  seg2{{0.25, 0.25, 1}, {0.25, 0.25, 0.5}};
+    segment_t  seg3{{0, 0, 1}, {1, 1, 1}};
+    segment_t  seg4{{0, 0, 1}, {0, 1, 0}};
+
+    ASSERT_TRUE ((seg1.get_plane_intersection(tr1.get_plane()) == point_t{0.25, 0.25, 0}));
+    ASSERT_FALSE(seg2.get_plane_intersection(tr1.get_plane()).is_valid());
+    ASSERT_FALSE(seg3.get_plane_intersection(tr1.get_plane()).is_valid());
+    ASSERT_TRUE ((seg4.get_plane_intersection(tr1.get_plane()) == point_t{0, 1, 0}));
+}
+
+TEST(bad_triangles, bad_triangles)
+{
+    triangle_t tr1{{0, 0, 0}, {1, 0, 0}, {0, 1, 0}};
+
+    triangle_t tr2{{0.25, 0.25, 1}, {0.25, 0.25, -1}, {0.25, 0.25, 1}};
+    triangle_t tr3{{0.25, 0.25, 1}, {0.25, 0.25, -1}, {0.25, 0.25, 0}};
+
+    ASSERT_TRUE(tr1.intersects(tr2));
+    ASSERT_FALSE(tr1.intersects(tr3));
+}
+
 int main(int argc, char **argv)
 {
+    std::cout << sizeof(triangle_t) << " triangle_t size\n";
+    std::cout << sizeof(segment_t)  << " segment_t size\n";
+    std::cout << sizeof(plane_t)  << " plane size\n";
+    std::cout << sizeof(point_t)  << " point size\n";
+
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

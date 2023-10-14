@@ -12,7 +12,7 @@ using namespace geometry;
 namespace octrees{
 
 
-const size_t SIZE_OF_PART = 100;
+const size_t SIZE_OF_PART = 1000;
 
 
 struct triag_id_t
@@ -156,10 +156,6 @@ class node_t
         std::cout << "parent = " << parent_ << " this = " << this << std::endl;
         std::cout << "number of elements = " << triag_num_ << std::endl;
         std::cout << "numer of triags in border = " << triangle_vectors_[8].size() << std::endl;
-        //pos_.print();
-
-        //for (int i = 0; i < 3; i++) planes_[i].print();
-
 
         std::cout << "\n\n";
     }
@@ -199,36 +195,27 @@ class node_t
     }
 
 
-    ans_set_t get_collisions()
+    void get_collisions(std::vector<bool> &answer)
     {
         if (isleaf_)
         {
-            ans_set_t ans;
             for (auto it = triags_.begin(); it != triags_.end(); it++)
             {
                 for (auto jt = std::next(it); jt != triags_.end(); jt++)
                 {
                     if (it->triag.intersects(jt->triag))
                     {
-                        ans.emplace(it->id);
-                        ans.emplace(jt->id);
+                        answer[it->id] = true;
+                        answer[jt->id] = true;
                     }
                 }
             }
-
-            return ans;
+            return;
         }
-
-        std::array<ans_set_t, 8> asn_arr;
-        ans_set_t ans;
 
         for (int i = 0; i < 8; i++)
-        {
-            asn_arr[i] = children_[i]->get_collisions();
-            ans.merge(asn_arr[i]);
-        }
+            children_[i]->get_collisions(answer);
 
-        ans_set_t border_ans;
         for (auto it = triangle_vectors_[8].begin(); it != triangle_vectors_[8].end(); it++)
         {
             for (auto jt = triags_.begin(); jt != triags_.end(); jt++)
@@ -236,14 +223,11 @@ class node_t
                 if (it->id == jt->id) continue;
                 if (it->triag.intersects(jt->triag))
                 {
-                    border_ans.emplace(it->id);
-                    border_ans.emplace(jt->id);
+                    answer[it->id] = true;
+                    answer[jt->id] = true;
                 }
             }
         }
-        ans.merge(border_ans);
-
-        return ans;
     }
 };
 
@@ -287,9 +271,9 @@ class octree_t
         root_->print();
     }
 
-    ans_set_t get_collisions()
+    void get_collisions(std::vector<bool> &answer)
     {
-        return root_->get_collisions();
+        root_->get_collisions(answer);
     }
 };
 

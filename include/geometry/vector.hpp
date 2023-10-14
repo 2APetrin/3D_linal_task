@@ -13,7 +13,6 @@ class vector_t
 
     vector_t(double x = NAN, double y = NAN, double z = NAN);
     vector_t(const point_t  &pnt);
-    vector_t(const vector_t &vec);
 
     bool is_valid() const;
 
@@ -25,6 +24,7 @@ class vector_t
 
     vector_t vec_product(const vector_t &vec2) const;
 
+    double sqal_product(const vector_t &vec2) const;
     double get_squared_len() const;
 
     vector_t normalized() const;
@@ -35,5 +35,8 @@ class vector_t
     double get_y() const;
     double get_z() const;
 };
+
+const vector_t NULL_VEC = vector_t{0, 0, 0};
+const vector_t NAN_VEC  = vector_t{NAN, NAN, NAN};
 
 }

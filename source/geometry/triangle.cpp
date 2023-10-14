@@ -5,15 +5,29 @@
 
 using namespace geometry;
 
-
-triangle_t::triangle_t(const point_t &A, const point_t &B, const point_t &C) : A_(A), B_(B), C_(C) {}
-
-
-bool triangle_t::is_valid() const
+triangle_t::triangle_t(const point_t &A, const point_t &B, const point_t &C) : A_(A), B_(B), C_(C), type_(get_triag_type())
 {
-    return (A_.is_valid() && B_.is_valid() && C_.is_valid()) &&
-           ((A_ != B_) && (A_ != C_) && (B_ != C_));
+    type_ = get_triag_type();
+    center_x3_ = vector_t{A_} + vector_t{B_} + vector_t{C_};
+
+    double lenab = (vector_t{B_} - vector_t{A_}).get_squared_len();
+    double lenbc = (vector_t{C_} - vector_t{B_}).get_squared_len();
+
+    bounding_radius_squared_ = bound_coeff * 2 * (lenab + lenbc);
 }
+
+
+triag_type triangle_t::get_triag_type() const
+{
+    ASSERT(is_valid());
+
+    if ((A_ != B_) && (B_ != C_) && (C_ != A_)) return TRIAG;
+    if ((A_ == B_) && (B_ == C_)) return POINT;
+    return SEGMENT;
+}
+
+
+bool triangle_t::is_valid() const { return (A_.is_valid() && B_.is_valid() && C_.is_valid()); }
 
 
 void triangle_t::print() const
@@ -28,162 +42,144 @@ void triangle_t::print() const
 }
 
 
-plane_t triangle_t::get_plane() const
-{
-    ASSERT(is_valid());
-
-    vector_t AB = vector_t{B_} - vector_t{A_};
-    vector_t AC = vector_t{C_} - vector_t{A_};
-
-    return {AB.vec_product(AC).normalized(), A_};
-}
-
-
 bool triangle_t::intersects(const triangle_t &triag2) const
 {
     ASSERT(is_valid());
     ASSERT(triag2.is_valid());
 
-    double distance_squared_x9 = (triag2.get_center_vec_x3() - get_center_vec_x3()).get_squared_len();
-    double bounding_sphere_radius_squared = get_bounding_sphere_radius(triag2);
+    double distanced_squared_x9 = (center_x3_ - triag2.center_x3_).get_squared_len();
+    if (distanced_squared_x9 > 18 * (bounding_radius_squared_ + triag2.bounding_radius_squared_)) return false;
 
-    if (distance_squared_x9 > 9 * bounding_sphere_radius_squared)
-        return false;
 
-    plane_t pln1 = get_plane();
-    plane_t pln2 = triag2.get_plane();
-    mutual_pos plane_pos_type = pln1.get_mutual_pos_type(pln2, A_);
-
-    switch(plane_pos_type)
+    switch(type_)
     {
-        case EQUAL:     return check_triags_in_same_plane(triag2);
-        case INTERSECT: return check_triags_in_intersect_planes(triag2, pln1, pln2);
-        case PARALLEL:  return false;
-        default:        return false;
+        case TRIAG: {
+            switch(triag2.type_) {
+                case TRIAG:   return intersects_triag_triag(triag2);
+                case SEGMENT: return intersects_triag_segment(triag2);
+                case POINT:   return intersects_triag_point(triag2);
+            }
+        }
+        break;
+
+        case SEGMENT: {
+            switch(triag2.type_) {
+                case TRIAG:   return triag2.intersects_triag_segment(*this);
+                case SEGMENT: return intersects_segment_segment(triag2);
+                case POINT:   return intersects_segment_point(triag2);
+            }
+        }
+        break;
+
+        case POINT: {
+            switch(triag2.type_) {
+                case TRIAG:   return triag2.intersects_triag_point(*this);
+                case SEGMENT: return triag2.intersects_segment_point(*this);
+                case POINT:   return intersects_point_point(triag2);
+            }
+        }
+        break;
     }
 
     return false;
 }
 
 
-double triangle_t::get_bounding_sphere_radius(const triangle_t &triag2) const
+bool triangle_t::intersects_point_point(const triangle_t &triag2) const
 {
-    ASSERT(is_valid());
+    point_t pnt1 = {center_x3_.get_x() / 3, center_x3_.get_y() / 3, center_x3_.get_z() / 3};
+    point_t pnt2 = {triag2.center_x3_.get_x() / 3, triag2.center_x3_.get_y() / 3, triag2.center_x3_.get_z() / 3};
 
-    double len_AB = (vector_t{B_} - vector_t{A_}).get_squared_len();
-    double len_AC = (vector_t{C_} - vector_t{A_}).get_squared_len();
-
-    double len_AB1 = (vector_t{triag2.B_} - vector_t{triag2.A_}).get_squared_len();
-    double len_AC1 = (vector_t{triag2.C_} - vector_t{triag2.A_}).get_squared_len();
-
-    double first_part  = bound_coeff * 2 * (len_AB + len_AC);
-    double second_part = bound_coeff * 2 * (len_AB1 + len_AC1);
-
-    return first_part + second_part;
+    return (pnt1 == pnt2);
 }
 
 
-vector_t triangle_t::get_center_vec_x3() const
+bool triangle_t::intersects_segment_point(const triangle_t &triag2) const
 {
-    return vector_t{(A_.get_x() + B_.get_x() + C_.get_x()),
-                    (A_.get_y() + B_.get_y() + C_.get_y()),
-                    (A_.get_z() + B_.get_z() + C_.get_z())};
-}
+    segment_t seg1 = get_segment();
+    point_t pnt = {triag2.center_x3_.get_x() / 3, triag2.center_x3_.get_y() / 3, triag2.center_x3_.get_z() / 3};
 
+    if ( !seg1.get_seg_line().check_point_belong(pnt) ) return false;
 
-bool triangle_t::check_triags_in_intersect_planes(const triangle_t &triag2, const plane_t &pln1, const plane_t &pln2) const
-{
-    ASSERT(is_valid());
-    ASSERT(triag2.is_valid());
-
-    if (!check_triag_intersect_plane(triag2, pln1, pln2)) return false;
-
-    line_t inter_line{pln1.get_intersection(pln2)};
-
-    segment_t seg1{get_triag_intersection(inter_line)},
-              seg2{triag2.get_triag_intersection(inter_line)};
-
-    return seg1.contains_inter_seg(seg2);
-}
-
-
-bool triangle_t::check_triag_intersect_plane(const triangle_t &triag2, const plane_t &pln1, const plane_t &pln2) const
-{
-    double res1 = pln2.calc_point(A_);
-    double res2 = pln2.calc_point(B_);
-    double res3 = pln2.calc_point(C_);
-    if ((res1 > 0 && res2 > 0 && res3 > 0) ||
-        (res1 < 0 && res2 < 0 && res3 < 0)) return false;
-
-    res1 = pln1.calc_point(triag2.A_);
-    res2 = pln1.calc_point(triag2.B_);
-    res3 = pln1.calc_point(triag2.C_);
-    if ((res1 > 0 && res2 > 0 && res3 > 0) ||
-        (res1 < 0 && res2 < 0 && res3 < 0)) return false;
+    if ( !seg1.contains_inter_pnt(pnt) ) return false;
 
     return true;
 }
 
 
-segment_t triangle_t::get_triag_intersection(const line_t &line) const
+bool triangle_t::intersects_segment_segment(const triangle_t &triag2) const
 {
-    ASSERT(is_valid());
-    ASSERT(line.is_valid());
+    segment_t seg1 = get_segment();
+    segment_t seg2 = triag2.get_segment();
 
-    segment_t AB{A_, B_};
-    segment_t BC{B_, C_};
-    segment_t CA{C_, A_};
+    point_t pnt = seg1.get_seg_line().get_line_intersection(seg2.get_seg_line());
 
-    int valid_cnt = 0;
+    if (pnt.special_check())
+        return seg1.intersects_seg(seg2);
 
-    point_t p1{AB.intersect_line(line)};
-    if (p1.is_valid()) valid_cnt++;
-    else if (p1.special_check())
-        return AB;
+    if (!pnt.is_valid()) return false;
 
-    point_t p2{BC.intersect_line(line)};
-    if (p2.is_valid()) valid_cnt++;
-    else if (p2.special_check())
-        return BC;
-
-    point_t p3{CA.intersect_line(line)};
-    if (p3.is_valid()) valid_cnt++;
-    else if (p3.special_check())
-        return CA;
-
-    if (valid_cnt < 2) return {{NAN, NAN, NAN}, {NAN, NAN, NAN}};
-
-    if (valid_cnt == 2)
-    {
-        if (!p1.is_valid()) return {p2, p3};
-        if (!p2.is_valid()) return {p1, p3};
-        return {p1, p2};
-    }
-
-    if (p1 == p2) return {p1, p3};
-    return {p1, p2};
+    return seg1.contains_inter_pnt(pnt) && seg2.contains_inter_pnt(pnt);
 }
 
 
-bool triangle_t::is_in_triag(const point_t &pnt) const
+bool triangle_t::intersects_triag_point(const triangle_t &triag2) const
 {
-    vector_t v1{(vector_t{B_} - vector_t{A_}).vec_product((vector_t{pnt} - vector_t{A_}))};
-    vector_t v2{(vector_t{C_} - vector_t{B_}).vec_product((vector_t{pnt} - vector_t{B_}))};
-    vector_t v3{(vector_t{A_} - vector_t{C_}).vec_product((vector_t{pnt} - vector_t{C_}))};
+    point_t pnt = {triag2.center_x3_.get_x() / 3, triag2.center_x3_.get_y() / 3, triag2.center_x3_.get_z() / 3};
 
-    vector_t resv1 = vector_t{pnt} + v1;
-    vector_t resv2 = vector_t{pnt} + v2;
-    vector_t resv3 = vector_t{pnt} + v3;
+    if (!is_equal(pln_.calc_point(pnt), 0)) return false;
+    if (!is_in_triag(pnt)) return false;
 
-    plane_t plane{get_plane()};
+    return true;
+}
 
-    double res1 = plane.calc_point({resv1.get_x(), resv1.get_y(), resv1.get_z()});
-    double res2 = plane.calc_point({resv2.get_x(), resv2.get_y(), resv2.get_z()});
-    double res3 = plane.calc_point({resv3.get_x(), resv3.get_y(), resv3.get_z()});
 
-    if ((res1 > 0 && res2 > 0 && res3 > 0) ||
-        (res1 < 0 && res2 < 0 && res3 < 0)) return true;
+bool triangle_t::intersects_triag_segment(const triangle_t &triag2) const
+{
+    segment_t seg = triag2.get_segment();
 
+    point_t pnt = pln_.get_line_intersection(seg.get_seg_line());
+
+    if ( !pnt.is_valid() ) return false;
+
+    if ( !is_equal(pln_.calc_point(pnt), 0) ) return false;
+
+    if ( !seg.contains_inter_pnt(pnt) && is_in_triag(pnt) ) return false;
+
+    return true;
+}
+
+
+segment_t triangle_t::get_segment() const
+{
+    segment_t AB{A_, B_},
+              BC{B_, C_},
+              CA{C_, A_};
+
+    double ab = AB.get_dir_vec().get_squared_len();
+    double bc = BC.get_dir_vec().get_squared_len();
+    double ca = CA.get_dir_vec().get_squared_len();
+    double max = triple_max(ab, bc, ca);
+
+    if (is_equal(ab, max)) return AB;
+    if (is_equal(bc, max)) return BC;
+    if (is_equal(ca, max)) return CA;
+
+    return {NAN_PNT, NAN_PNT};
+}
+
+
+bool triangle_t::intersects_triag_triag(const triangle_t &triag2) const
+{
+    mutual_pos plane_pos_type = pln_.get_mutual_pos_type(triag2.pln_, A_);
+
+    switch(plane_pos_type)
+    {
+        case EQUAL:     return check_triags_in_same_plane(triag2);
+        case INTERSECT: return check_triags_in_intersect_planes(triag2);
+        case PARALLEL:  return false;
+        default:        return false;
+    }
     return false;
 }
 
@@ -214,6 +210,105 @@ bool triangle_t::check_triags_in_same_plane(const triangle_t &triag2) const
 }
 
 
+bool triangle_t::check_triags_in_intersect_planes(const triangle_t &triag2) const
+{
+    if (!check_triag_intersect_plane(triag2)) return false;
+
+    line_t inter_line{pln_.get_intersection(triag2.pln_)};
+    if ( !inter_line.is_valid() ) {
+        std::cout << "cock\n";
+        return false;
+    }
+
+    segment_t seg1{get_triag_intersection(inter_line)},
+              seg2{triag2.get_triag_intersection(inter_line)};
+
+    if (!seg1.is_valid() || !seg2.is_valid()) return false;
+
+    return seg1.contains_inter_seg(seg2);
+}
+
+
+bool triangle_t::check_triag_intersect_plane(const triangle_t &triag2) const
+{
+    double res1 = triag2.pln_.calc_point(A_);
+    double res2 = triag2.pln_.calc_point(B_);
+    double res3 = triag2.pln_.calc_point(C_);
+    if (all_positive(res1, res2, res3) ||
+        all_negative(res1, res2, res3)) return false;
+
+    res1 = pln_.calc_point(triag2.A_);
+    res2 = pln_.calc_point(triag2.B_);
+    res3 = pln_.calc_point(triag2.C_);
+    if (all_positive(res1, res2, res3) ||
+        all_negative(res1, res2, res3)) return false;
+
+    return true;
+}
+
+
+bool triangle_t::is_in_triag(const point_t &pnt) const
+{
+    vector_t v1{(vector_t{B_} - vector_t{A_}).vec_product((vector_t{pnt} - vector_t{A_}))};
+    vector_t v2{(vector_t{C_} - vector_t{B_}).vec_product((vector_t{pnt} - vector_t{B_}))};
+    vector_t v3{(vector_t{A_} - vector_t{C_}).vec_product((vector_t{pnt} - vector_t{C_}))};
+
+    vector_t resv1 = vector_t{pnt} + v1;
+    vector_t resv2 = vector_t{pnt} + v2;
+    vector_t resv3 = vector_t{pnt} + v3;
+
+    double res1 = pln_.calc_point({resv1.get_x(), resv1.get_y(), resv1.get_z()});
+    double res2 = pln_.calc_point({resv2.get_x(), resv2.get_y(), resv2.get_z()});
+    double res3 = pln_.calc_point({resv3.get_x(), resv3.get_y(), resv3.get_z()});
+
+    if (all_positive(res1, res2, res3) || all_negative(res1, res2, res3)) return true;
+
+    return false;
+}
+
+
+segment_t triangle_t::get_triag_intersection(const line_t &line) const
+{
+    ASSERT(is_valid());
+    ASSERT(line.is_valid());
+
+    int valid_cnt = 0;
+
+    segment_t AB{A_, B_},
+              BC{B_, C_},
+              CA{C_, A_};
+
+    point_t p1{AB.get_line_intersection(line)};
+    if (p1.is_valid()) valid_cnt++;
+    else if (p1.special_check())
+        return AB;
+
+    point_t p2{BC.get_line_intersection(line)};
+    if (p2.is_valid()) valid_cnt++;
+    else if (p2.special_check())
+        return BC;
+
+    point_t p3{CA.get_line_intersection(line)};
+    if (p3.is_valid()) valid_cnt++;
+    else if (p3.special_check())
+        return CA;
+
+    if (valid_cnt < 2) return {NAN_PNT, NAN_PNT};
+
+    if (valid_cnt == 2)
+    {
+        if (!p1.is_valid()) return {p2, p3};
+        if (!p2.is_valid()) return {p1, p3};
+        return {p1, p2};
+    }
+
+    if (p1 == p2) return {p1, p3};
+    return {p1, p2};
+}
+
+
 point_t triangle_t::getA() const { return A_; }
 point_t triangle_t::getB() const { return B_; }
 point_t triangle_t::getC() const { return C_; }
+
+plane_t triangle_t::get_plane() const { return pln_; }

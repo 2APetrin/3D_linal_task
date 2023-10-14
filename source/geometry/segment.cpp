@@ -1,4 +1,5 @@
 #include "segment.hpp"
+#include "plane.hpp"
 #include "custom_assert.hpp"
 #include "double_operations.hpp"
 
@@ -31,7 +32,7 @@ bool segment_t::intersects_seg(const segment_t &seg2) const
     line_t seg_line1{vector_t{second_} - vector_t{first_}, first_};
     line_t seg_line2{vector_t{seg2.second_} - vector_t{seg2.first_}, seg2.first_};
 
-    point_t intersection_pnt{seg_line1.get_line_intersection_same_plane(seg_line2)};
+    point_t intersection_pnt{seg_line1.get_line_intersection(seg_line2)};
 
     if (intersection_pnt.special_check())
     {
@@ -44,21 +45,18 @@ bool segment_t::intersects_seg(const segment_t &seg2) const
 }
 
 
-point_t segment_t::intersect_line(const line_t &line) const
+point_t segment_t::get_line_intersection(const line_t &line) const
 {
-    vector_t dir_vec = vector_t{second_} - vector_t{first_};
-    line_t seg_line{dir_vec, first_};
+    if ((dir_vec_.vec_product(line.get_dir_vec()) == NULL_VEC) && !(line.check_point_belong(first_)))
+        return NAN_PNT;
 
-    if (dir_vec.vec_product(line.get_dir_vec()) == vector_t{{0, 0, 0}} && !(line.check_point_belong(first_)))
-        return {NAN, NAN, NAN};
+    if ((dir_vec_.vec_product(line.get_dir_vec()) == NULL_VEC) && (line.check_point_belong(first_)))
+        return SPEC_PNT;
 
-    if (dir_vec.vec_product(line.get_dir_vec()) == vector_t{{0, 0, 0}} && (line.check_point_belong(first_)))
-        return {NAN, 0, 0};
-
-    point_t intersection_pnt{seg_line.get_line_intersection_same_plane(line)};
+    point_t intersection_pnt{seg_line_.get_line_intersection(line)};
 
     if (contains_inter_pnt(intersection_pnt)) return intersection_pnt;
-    return {NAN, NAN, NAN};
+    return NAN_PNT;
 }
 
 
@@ -67,3 +65,21 @@ bool segment_t::contains_inter_seg(const segment_t &seg2) const
     return contains_inter_pnt(seg2.first_) || contains_inter_pnt(seg2.second_) ||
            seg2.contains_inter_pnt(first_) || seg2.contains_inter_pnt(second_);
 }
+
+
+point_t segment_t::get_plane_intersection(const plane_t &pln) const
+{
+    ASSERT(is_valid());
+    ASSERT(pln.is_valid());
+
+    point_t pnt = pln.get_line_intersection(seg_line_);
+    if (!pnt.is_valid()) return pnt;
+
+    if (!contains_inter_pnt(pnt)) return NAN_PNT;
+    return pnt;
+}
+
+
+vector_t segment_t::get_dir_vec() const { return dir_vec_; }
+
+line_t segment_t::get_seg_line() const {return seg_line_; }

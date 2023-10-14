@@ -1,5 +1,6 @@
 #include "custom_assert.hpp"
 #include "plane.hpp"
+#include "line.hpp"
 #include <iostream>
 
 using namespace geometry;
@@ -23,7 +24,7 @@ mutual_pos plane_t::get_mutual_pos_type(const plane_t &pln, const point_t &pnt) 
 
     vector_t res_vec = norm_vec_.vec_product(pln.norm_vec_);
 
-    if (res_vec != vector_t{{0, 0, 0}}) return INTERSECT;
+    if (res_vec != NULL_VEC) return INTERSECT;
 
     if (is_equal(pln.a_ * pnt.get_x() + pln.b_ * pnt.get_y() + pln.c_ * pnt.get_z() + pln.d_, 0))
         return EQUAL;
@@ -75,7 +76,7 @@ line_t plane_t::get_intersection(const plane_t &plane2) const
         return line_t{{norm_vec_.vec_product(plane2.norm_vec_)}, {(sub_det1 / main_det), (sub_det2 / main_det), 0}};
     }
 
-    return {vector_t{NAN, NAN, NAN}, point_t{NAN, NAN, NAN}};
+    return {NAN_VEC, NAN_PNT};
 }
 
 
@@ -95,3 +96,23 @@ double plane_t::get_a() const { return a_; }
 double plane_t::get_b() const { return b_; }
 double plane_t::get_c() const { return c_; }
 double plane_t::get_d() const { return d_; }
+
+vector_t plane_t::get_norm() const { return norm_vec_; }
+
+
+point_t plane_t::get_line_intersection(const line_t &line) const
+{
+    ASSERT(is_valid());
+    ASSERT(line.is_valid());
+
+    if (is_equal(norm_vec_.sqal_product(line.get_dir_vec()), 0)) return NAN_PNT;
+
+    vector_t dir_vec = line.get_dir_vec();
+    point_t pnt = line.get_line_pnt();
+
+    double denom = a_ * dir_vec.get_x() + b_ * dir_vec.get_y() + c_ * dir_vec.get_z();
+    double t0 = -1 * calc_point(pnt) / denom;
+
+
+    return {pnt.get_x() + dir_vec.get_x() * t0, pnt.get_y() + dir_vec.get_y() * t0, pnt.get_z() + dir_vec.get_z() * t0};
+}

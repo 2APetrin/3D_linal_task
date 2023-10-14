@@ -8,8 +8,6 @@ vector_t::vector_t(double x, double y, double z) : x_(x), y_(y), z_(z) {}
 
 vector_t::vector_t(const point_t &pnt) : x_(pnt.get_x()), y_(pnt.get_y()), z_(pnt.get_z()) {}
 
-vector_t::vector_t(const vector_t &vec) : x_(vec.get_x()), y_(vec.get_y()), z_(vec.get_z()) {}
-
 
 bool vector_t::is_valid() const { return (std::isfinite(x_) && std::isfinite(y_) && std::isfinite(z_)); }
 
@@ -83,10 +81,17 @@ vector_t vector_t::normalized() const
 
 void vector_t::print() const
 {
-    ASSERT(is_valid());
     std::cout << "(" << x_ << ", " << y_ << ", " << z_ << ")" << std::endl;
 }
 
+
+double vector_t::sqal_product(const vector_t &vec2) const
+{
+    ASSERT(is_valid());
+    ASSERT(vec2.is_valid());
+
+    return x_*vec2.x_ + y_*vec2.y_ + z_*vec2.z_;
+}
 
 
 double vector_t::get_x() const { return x_; }
