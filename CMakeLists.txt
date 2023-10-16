@@ -17,7 +17,7 @@ find_package(GTest REQUIRED)
 enable_testing()
 
 add_subdirectory(./source)
-add_subdirectory(./tests)
+add_subdirectory(./test)
 
 target_include_directories(triag     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/geometry)
 target_include_directories(test_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/geometry)

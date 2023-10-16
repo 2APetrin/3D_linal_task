@@ -24,7 +24,7 @@ int main()
 
     if (triag_num > 0)
     {
-        for (size_t i = 0; i < triag_num; i++)
+        for (size_t i = 0; i < static_cast<size_t>(triag_num); i++)
         {
             double a = 0, b = 0, c = 0;
             std::cin >> a >> b >> c;
@@ -35,6 +35,7 @@ int main()
             point_t p3{a, b, c};
 
             triags.push_back(octrees::triag_id_t{triangle_t{p1, p2, p3}, i});
+            //triangle_t{p1, p2, p3}.print();
         }
     }
     else

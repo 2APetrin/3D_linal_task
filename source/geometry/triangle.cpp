@@ -139,8 +139,10 @@ bool triangle_t::intersects_triag_point(const triangle_t &triag2) const
 bool triangle_t::intersects_triag_segment(const triangle_t &triag2) const
 {
     segment_t seg = triag2.get_segment();
+    //seg.print();
 
     point_t pnt = pln_.get_line_intersection(seg.get_seg_line());
+    //pnt.print();
 
     if ( pnt.special_check() )
     {
@@ -161,9 +163,9 @@ bool triangle_t::intersects_triag_segment(const triangle_t &triag2) const
 
     if ( !is_equal(pln_.calc_point(pnt), 0) ) return false;
 
-    if ( !seg.contains_inter_pnt(pnt) && is_in_triag(pnt) ) return false;
+    if ( seg.contains_inter_pnt(pnt) && is_in_triag(pnt) ) return true;
 
-    return true;
+    return false;
 }
 
 
@@ -275,7 +277,7 @@ bool triangle_t::is_in_triag(const point_t &pnt) const
     double res2 = pln_.calc_point({resv2.get_x(), resv2.get_y(), resv2.get_z()});
     double res3 = pln_.calc_point({resv3.get_x(), resv3.get_y(), resv3.get_z()});
 
-    if (all_positive(res1, res2, res3) || all_negative(res1, res2, res3)) return true;
+    if (all_positive_triag_special(res1, res2, res3) || all_negative_triag_special(res1, res2, res3)) return true;
 
     return false;
 }

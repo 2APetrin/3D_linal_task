@@ -80,6 +80,14 @@ point_t segment_t::get_plane_intersection(const plane_t &pln) const
 }
 
 
+void segment_t::print() const
+{
+    std::cout << "segment:\n";
+    first_.print();
+    second_.print();
+}
+
+
 vector_t segment_t::get_dir_vec() const { return dir_vec_; }
 
 line_t segment_t::get_seg_line() const {return seg_line_; }

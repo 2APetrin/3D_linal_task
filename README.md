@@ -21,7 +21,13 @@ main prog:
 ./source/triag
 ```
 
-tests:
+unit tests:
 ```
 ./tests/test_main
+```
+
+4. end-to-end tests: </br>
+*from 3d_triandles directory:*
+```
+./test/tests.sh
 ```

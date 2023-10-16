@@ -32,3 +32,36 @@ bool all_negative(const double &num1, const double &num2, const double &num3)
 {
     return (num1 < 0) && (num2 < 0) && (num3 < 0);
 }
+
+
+bool all_positive_triag_special(const double &num1, const double &num2, const double &num3)
+{
+    if (num1 < 0) return false;
+    if (num2 < 0) return false;
+    if (num3 < 0) return false;
+
+    int zeros = 0;
+
+    if (is_equal(num1, 0)) ++zeros;
+    if (is_equal(num2, 0)) ++zeros;
+    if (is_equal(num3, 0)) ++zeros;
+
+    if (zeros > 2) return false;
+    return true;
+}
+
+bool all_negative_triag_special(const double &num1, const double &num2, const double &num3)
+{
+    if (num1 > 0) return false;
+    if (num2 > 0) return false;
+    if (num3 > 0) return false;
+
+    int zeros = 0;
+
+    if (is_equal(num1, 0)) ++zeros;
+    if (is_equal(num2, 0)) ++zeros;
+    if (is_equal(num3, 0)) ++zeros;
+
+    if (zeros > 2) return false;
+    return true;
+}

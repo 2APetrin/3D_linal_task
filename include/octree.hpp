@@ -199,14 +199,16 @@ class node_t
     {
         if (isleaf_)
         {
-            for (auto it = triags_.begin(); it != triags_.end(); it++)
+            for (auto it = triags_.begin(), ite = triags_.end(); it != ite; ++it)
             {
-                for (auto jt = std::next(it); jt != triags_.end(); jt++)
+                for (auto jt = std::next(it), jte = triags_.end(); jt != jte; jt++)
                 {
                     if (it->triag.intersects(jt->triag))
                     {
                         answer[it->id] = true;
                         answer[jt->id] = true;
+
+                        //std::cout << it->id << "-" << jt->id << std::endl;
                     }
                 }
             }
@@ -225,6 +227,8 @@ class node_t
                 {
                     answer[it->id] = true;
                     answer[jt->id] = true;
+
+                    //std::cout << it->id << "-" << jt->id << std::endl;
                 }
             }
         }

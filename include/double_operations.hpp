@@ -13,3 +13,5 @@ bool ls_or_eq(const double &num1, const double &num2);
 bool all_positive(const double &num1, const double &num2, const double &num3);
 bool all_negative(const double &num1, const double &num2, const double &num3);
 
+bool all_positive_triag_special(const double &num1, const double &num2, const double &num3);
+bool all_negative_triag_special(const double &num1, const double &num2, const double &num3);

@@ -46,6 +46,8 @@ class segment_t
 
     line_t get_seg_line() const;
 
+    void print() const;
+
     const point_t& get_fst() const;
     const point_t& get_snd() const;
 };
