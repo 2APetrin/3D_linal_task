@@ -124,6 +124,9 @@ TEST(bad_triangles, bad_triangles)
     triangle_t tr9{{1, 0, -100}, {1, 0, -100}, {10, 0, 10}};
     triangle_t tr10{{0.01, 0.5, 0.00}, {0.5, 0.01, 0}, {0.5, 0.01, 0}};
 
+    triangle_t tr11{{0,0,0}, {0,0,0}, {0,0,0}};
+    triangle_t tr12{{0,0,0}, {0,0,0}, {0,0,0}};
+
 
     ASSERT_TRUE(tr1.intersects(tr2));
     ASSERT_TRUE(tr1.intersects(tr4));
@@ -134,6 +137,7 @@ TEST(bad_triangles, bad_triangles)
     ASSERT_TRUE(tr8.intersects(tr1));
     ASSERT_TRUE(tr9.intersects(tr7));
     ASSERT_TRUE(tr10.intersects(tr1));
+    ASSERT_TRUE(tr11.intersects(tr12));
 
 
     ASSERT_FALSE(tr5.intersects(tr4));

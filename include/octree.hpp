@@ -102,7 +102,7 @@ class node_t
                                       plane_t{{0, 1, 0}, {0, pos_.y_, 0}},
                                       plane_t{{0, 0, 1}, {0, 0, pos_.z_}}};
 
-    std::array<node_t*, 8>      children_;
+    std::array<node_t*, 8> children_;
     std::array<triag_vector, 9> triangle_vectors_;
 
     ans_set_t collision_ans_;
@@ -149,6 +149,11 @@ class node_t
                 delete children_[i];
         }
     }
+
+    node_t(const node_t& other) = delete;
+    node_t(node_t&& other) noexcept = delete;
+    node_t& operator= (const node_t& other) = delete;
+    node_t& operator= (node_t&& other) noexcept = delete;
 
     void print() const
     {
@@ -265,14 +270,15 @@ class octree_t
                                      (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2}, all_triags_, this};
     }
 
-    ~octree_t()
-    {
-        delete root_;
-    }
+    ~octree_t() { delete root_; }
+    octree_t(const octree_t& other) = delete;
+    octree_t(octree_t&& other) noexcept = delete;
+    octree_t& operator= (const octree_t& other) = delete;
+    octree_t& operator= (octree_t&& other) noexcept = delete;
 
     void print()
     {
-        root_->print();
+        root_->print(); 
     }
 
     void get_collisions(std::vector<bool> &answer)
