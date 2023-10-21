@@ -1,12 +1,9 @@
 #pragma once
 
-#include "double_operations.hpp"
 #include "segment.hpp"
 #include "plane.hpp"
 
 namespace geometry {
-
-const double bound_coeff = 0.36; // it's min coeff squared (0.6 * 0.6) to bound triangles by it's longest segment
 
 enum triag_type
 {
@@ -23,7 +20,7 @@ class triangle_t
     plane_t pln_{(vector_t{B_} - vector_t{A_}).vec_product(vector_t{C_} - vector_t{A_}).normalized(), A_};
 
     vector_t center_x3_;
-    double bounding_radius_squared_ = NAN;
+    double bounding_rad_sq_ = NAN;
 
 
     bool is_in_triag(const point_t &pnt) const;
@@ -49,15 +46,6 @@ class triangle_t
     bool intersects_segment_point   (const triangle_t &triag2) const;
     bool intersects_point_point     (const triangle_t &triag2) const;
 
-    /* bool intersects_in_same_plane   (const triangle_t &triag2) const;
-
-    bool intersects_same_triag_triag  (const triangle_t &triag2) const;
-    bool intersects_same_triag_segment(const triangle_t &triag2) const;
-    bool intersects_same_triag_point  (const triangle_t &triag2) const;
-
-    bool intersects_same_segment_segment(const triangle_t &triag2) const;
-    bool intersects_same_segment_point  (const triangle_t &triag2) const; */
-
     bool check_triag_intersect_plane(const triangle_t &triag2) const;
 
 
@@ -67,17 +55,18 @@ class triangle_t
 
     segment_t get_segment() const;
 
-    bool is_valid() const;
+    bool is_valid() const { return (A_.is_valid() && B_.is_valid() && C_.is_valid()); }
 
     bool intersects(const triangle_t &triag2) const;
 
+
     void print() const;
 
-    plane_t get_plane() const;
+    point_t getA() const { return A_; }
+    point_t getB() const { return B_; }
+    point_t getC() const { return C_; }
 
-    point_t getA() const;
-    point_t getB() const;
-    point_t getC() const;
+    plane_t get_plane() const { return pln_; }
 };
 
 }

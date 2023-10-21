@@ -1,18 +1,21 @@
 #pragma once
-#include "plane.hpp"
+#include "double_operations.hpp"
 #include "triangle.hpp"
+#include "plane.hpp"
 #include <iostream>
 #include <limits>
 #include <vector>
 #include <array>
+#include <list>
 #include <set>
 
 using namespace geometry;
+using namespace doperations;
+
 
 namespace octrees{
 
-
-const size_t SIZE_OF_PART = 1000;
+const size_t SIZE_OF_PART = 100;
 
 
 struct triag_id_t
@@ -25,12 +28,12 @@ struct triag_id_t
 using triag_vector = std::vector<triag_id_t>;
 
 
-struct node_position
+struct cube_position
 {
     double x_, y_, z_;
     double x_rad_, y_rad_, z_rad_;
 
-    node_position(double x, double y, double z, double x_rad, double y_rad, double z_rad) :
+    cube_position(double x, double y, double z, double x_rad, double y_rad, double z_rad) :
     x_(x), y_(y), z_(z), x_rad_(x_rad), y_rad_(y_rad), z_rad_(z_rad) {}
 
     void print() const
@@ -50,8 +53,7 @@ enum cube_positions
     FOUR    = 4,
     FIFTH   = 5,
     SIXTH   = 6,
-    SEVENTH = 7,
-    BORDER  = 8
+    SEVENTH = 7
 };
 
 
@@ -87,32 +89,59 @@ struct max_min_crds_t
 
 class octree_t;
 
+const int child_num = 8;
 
-using ans_set_t = typename std::set<size_t>;
 
+bool is_point_in_cube(const point_t& pnt, const cube_position& pos)
+{
+    double minx = pos.x_ - pos.x_rad_,
+           maxx = pos.x_ + pos.x_rad_,
+           miny = pos.y_ - pos.y_rad_,
+           maxy = pos.y_ + pos.y_rad_,
+           minz = pos.z_ - pos.z_rad_,
+           maxz = pos.z_ + pos.z_rad_;
+
+    double px = pnt.get_x(), py = pnt.get_y(), pz = pnt.get_z();
+
+    bool fits_x = (gr_or_eq(px, minx) && ls_or_eq(px, maxx));
+    bool fits_y = (gr_or_eq(py, miny) && ls_or_eq(py, maxy));
+    bool fits_z = (gr_or_eq(pz, minz) && ls_or_eq(pz, maxz));
+
+    return fits_x && fits_y && fits_z;
+}
+
+
+inline bool is_in_cube(const triangle_t& triag, const cube_position& pos)
+{
+    return is_point_in_cube(triag.getA(), pos) ||
+           is_point_in_cube(triag.getB(), pos) ||
+           is_point_in_cube(triag.getC(), pos);
+}
+
+
+namespace detail {
 
 class node_t
 {
-    bool isleaf_ = true;
-    node_t* parent_ = nullptr;
+    node_t* parent_;
 
-    node_position pos_;
+    bool isleaf_ = true;
+
+    cube_position pos_;
 
     std::array<plane_t, 3> planes_ = {plane_t{{1, 0, 0}, {pos_.x_, 0, 0}},
                                       plane_t{{0, 1, 0}, {0, pos_.y_, 0}},
                                       plane_t{{0, 0, 1}, {0, 0, pos_.z_}}};
 
-    std::array<node_t*, 8> children_;
-    std::array<triag_vector, 9> triangle_vectors_;
-
-    ans_set_t collision_ans_;
+    std::array<node_t*, child_num> children_;
+    std::array<triag_vector, child_num> triangle_vectors_;
 
     public:
 
     size_t       triag_num_ = 0;
     triag_vector triags_;
 
-    node_t(node_t* parent, node_position pos, triag_vector triags, octree_t* tree = nullptr) : parent_(parent), pos_(pos), triags_(triags)
+    node_t(node_t* parent, cube_position pos, triag_vector triags, std::list<node_t> &nodes) : parent_(parent), pos_(pos), triags_(triags)
     {
         triag_num_ = triags.size();
 
@@ -125,78 +154,40 @@ class node_t
         double next_yrad = pos_.y_rad_ / 2;
         double next_zrad = pos_.z_rad_ / 2;
 
-        for (auto it = triags_.begin(); it != triags_.end(); it++)
+        std::vector<cube_position> children_pos;
+
+        for (int i = 0; i < child_num; ++i)
         {
-            triag_emplace(*it);
+            children_pos.push_back({pos_.x_ + ((i & (1 << 0)) ? -next_xrad : next_xrad),
+                                    pos_.y_ + ((i & (1 << 1)) ? -next_yrad : next_yrad),
+                                    pos_.z_ + ((i & (1 << 2)) ? -next_zrad : next_zrad),
+                                    next_xrad, next_yrad, next_zrad});
         }
 
-        children_[0] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[0]};
-        children_[1] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[1]};
-        children_[2] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ - pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[2]};
-        children_[3] = new node_t{this, node_position{pos_.x_ + pos_.x_rad_/2, pos_.y_ - pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[3]};
+        for (auto it = triags_.begin(), ite = triags_.end(); it != ite; ++it) triag_emplace(*it, children_pos);
 
-        children_[4] = new node_t{this, node_position{pos_.x_ - pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[4]};
-        children_[5] = new node_t{this, node_position{pos_.x_ - pos_.x_rad_/2, pos_.y_ + pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[5]};
-        children_[6] = new node_t{this, node_position{pos_.x_ - pos_.x_rad_/2, pos_.y_ - pos_.y_rad_/2, pos_.z_ + pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[6]};
-        children_[7] = new node_t{this, node_position{pos_.x_ - pos_.x_rad_/2, pos_.y_ - pos_.y_rad_/2, pos_.z_ - pos_.z_rad_/2, next_xrad, next_yrad, next_zrad}, triangle_vectors_[7]};
-    }
-
-    ~node_t()
-    {
-        if (!isleaf_)
+        for (int i = 0; i < child_num; ++i)
         {
-            for (int i = 0; i < 8; i++)
-                delete children_[i];
+            nodes.push_back(node_t{this, children_pos[i], triangle_vectors_[i], nodes});
+            children_[i] = &(*std::prev(nodes.end()));
         }
     }
 
-    node_t(const node_t& other) = delete;
-    node_t(node_t&& other) noexcept = delete;
-    node_t& operator= (const node_t& other) = delete;
-    node_t& operator= (node_t&& other) noexcept = delete;
 
     void print() const
     {
         std::cout << "isleaf = " << isleaf_ << std::endl;
         std::cout << "parent = " << parent_ << " this = " << this << std::endl;
         std::cout << "number of elements = " << triag_num_ << std::endl;
-        std::cout << "numer of triags in border = " << triangle_vectors_[8].size() << std::endl;
 
         std::cout << "\n\n";
     }
 
 
-    void triag_emplace(triag_id_t triag)
+    void triag_emplace(triag_id_t trg, std::vector<cube_position> &child_positions)
     {
-        cube_positions triag_pos = check_triangle(triag);
-
-        triangle_vectors_[triag_pos].push_back(triag);
-    }
-
-    cube_positions check_triangle(triag_id_t triag) const
-    {
-        std::array<std::array<double, 3>, 3> res;
-
-        for (int i = 0; i < 3; i++)
-        {
-            res[i][0] = planes_[i].calc_point(triag.triag.getA());
-            res[i][1] = planes_[i].calc_point(triag.triag.getB());
-            res[i][2] = planes_[i].calc_point(triag.triag.getC());
-        }
-
-        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return ZERO;
-        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return FRST;
-
-        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return SEC;
-        if (all_positive(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return THIRD;
-
-        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return FOUR;
-        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_positive(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return FIFTH;
-
-        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_positive(res[2][0], res[2][1], res[2][2])) return SIXTH;
-        if (all_negative(res[0][0], res[0][1], res[0][2]) && all_negative(res[1][0], res[1][1], res[1][2]) && all_negative(res[2][0], res[2][1], res[2][2])) return SEVENTH;
-
-        return BORDER;
+        for (int i = 0; i < 8; ++i)
+            if (is_in_cube(trg.triag, child_positions[i])) triangle_vectors_[i].push_back(trg);
     }
 
 
@@ -206,44 +197,30 @@ class node_t
         {
             for (auto it = triags_.begin(), ite = triags_.end(); it != ite; ++it)
             {
-                for (auto jt = std::next(it), jte = triags_.end(); jt != jte; jt++)
+                for (auto jt = std::next(it), jte = triags_.end(); jt != jte; ++jt)
                 {
                     if (it->triag.intersects(jt->triag))
                     {
                         answer[it->id] = true;
                         answer[jt->id] = true;
-
-                        //std::cout << it->id << "-" << jt->id << std::endl;
                     }
                 }
             }
             return;
         }
 
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < child_num; ++i)
             children_[i]->get_collisions(answer);
-
-        for (auto it = triangle_vectors_[8].begin(); it != triangle_vectors_[8].end(); it++)
-        {
-            for (auto jt = triags_.begin(); jt != triags_.end(); jt++)
-            {
-                if (it->id == jt->id) continue;
-                if (it->triag.intersects(jt->triag))
-                {
-                    answer[it->id] = true;
-                    answer[jt->id] = true;
-
-                    //std::cout << it->id << "-" << jt->id << std::endl;
-                }
-            }
-        }
     }
 };
+
+}
 
 
 class octree_t
 {
-    node_t* root_ = nullptr;
+    detail::node_t* root_ = nullptr;
+    std::list<detail::node_t> nodes_;
 
     triag_vector all_triags_;
 
@@ -266,25 +243,16 @@ class octree_t
             min_max.update(C.get_x(), C.get_y(), C.get_z());
         }
 
-        root_ = new node_t{nullptr, {(min_max.x_max + min_max.x_min)/2, (min_max.y_max + min_max.y_min)/2, (min_max.z_max + min_max.z_min)/2,
-                                     (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2}, all_triags_, this};
+        cube_position pos{(min_max.x_max + min_max.x_min)/2, (min_max.y_max + min_max.y_min)/2, (min_max.z_max + min_max.z_min)/2,
+                          (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2};
+
+        nodes_.push_back(detail::node_t{nullptr, pos, all_triags_, nodes_});
+        root_ = &(*std::prev(nodes_.end()));
     }
 
-    ~octree_t() { delete root_; }
-    octree_t(const octree_t& other) = delete;
-    octree_t(octree_t&& other) noexcept = delete;
-    octree_t& operator= (const octree_t& other) = delete;
-    octree_t& operator= (octree_t&& other) noexcept = delete;
+    void print() { root_->print(); }
 
-    void print()
-    {
-        root_->print(); 
-    }
-
-    void get_collisions(std::vector<bool> &answer)
-    {
-        root_->get_collisions(answer);
-    }
+    void get_collisions(std::vector<bool> &answer) { root_->get_collisions(answer); }
 };
 
 }

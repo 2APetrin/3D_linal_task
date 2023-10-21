@@ -1,9 +1,11 @@
+#include "double_operations.hpp"
 #include "custom_assert.hpp"
 #include "plane.hpp"
 #include "line.hpp"
 #include <iostream>
 
 using namespace geometry;
+using namespace doperations;
 
 
 plane_t::plane_t(const vector_t &norm_vec, const point_t &plane_pnt) : norm_vec_(norm_vec), plane_pnt_(plane_pnt)
@@ -87,17 +89,6 @@ double plane_t::calc_point(const point_t &pnt) const
 
     return a_ * pnt.get_x() + b_ * pnt.get_y() + c_ * pnt.get_z() + d_;
 }
-
-
-bool plane_t::is_valid() const { return norm_vec_.is_valid() && plane_pnt_.is_valid(); }
-
-
-double plane_t::get_a() const { return a_; }
-double plane_t::get_b() const { return b_; }
-double plane_t::get_c() const { return c_; }
-double plane_t::get_d() const { return d_; }
-
-vector_t plane_t::get_norm() const { return norm_vec_; }
 
 
 point_t plane_t::get_line_intersection(const line_t &line) const

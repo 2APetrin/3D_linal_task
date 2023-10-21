@@ -1,9 +1,13 @@
+#include "double_operations.hpp"
 #include "custom_assert.hpp"
 #include "triangle.hpp"
 #include "point.hpp"
 #include <iostream>
+#include <vector>
 
 using namespace geometry;
+using namespace doperations;
+
 
 triangle_t::triangle_t(const point_t &A, const point_t &B, const point_t &C) : A_(A), B_(B), C_(C), type_(get_triag_type())
 {
@@ -12,8 +16,11 @@ triangle_t::triangle_t(const point_t &A, const point_t &B, const point_t &C) : A
 
     double lenab = (vector_t{B_} - vector_t{A_}).get_squared_len();
     double lenbc = (vector_t{C_} - vector_t{B_}).get_squared_len();
+    double lenca = (vector_t{A_} - vector_t{C_}).get_squared_len();
 
-    bounding_radius_squared_ = bound_coeff * 2 * (lenab + lenbc);
+    double max_sq = triple_max(lenab, lenbc, lenca);
+
+    bounding_rad_sq_ = max_sq;
 }
 
 
@@ -27,9 +34,6 @@ triag_type triangle_t::get_triag_type() const
         (vector_t{C_} - vector_t{A_}).vec_product(vector_t{C_} - vector_t{B_}) == NULL_VEC) return SEGMENT;
     return TRIAG;
 }
-
-
-bool triangle_t::is_valid() const { return (A_.is_valid() && B_.is_valid() && C_.is_valid()); }
 
 
 void triangle_t::print() const
@@ -50,7 +54,7 @@ bool triangle_t::intersects(const triangle_t &triag2) const
     ASSERT(triag2.is_valid());
 
     double distanced_squared_x9 = (center_x3_ - triag2.center_x3_).get_squared_len();
-    if (distanced_squared_x9 > 18 * (bounding_radius_squared_ + triag2.bounding_radius_squared_)) return false;
+    if (distanced_squared_x9 > 9 * (bounding_rad_sq_ + triag2.bounding_rad_sq_)) return false;
 
 
     switch(type_)
@@ -210,22 +214,14 @@ bool triangle_t::check_triags_in_same_plane(const triangle_t &triag2) const
                  triag2.is_in_triag(C_);
     if (cond1) return true;
 
-    segment_t AB1{A_, B_},
-              BC1{B_, C_},
-              CA1{C_, A_},
-              AB2{triag2.A_, triag2.B_},
-              BC2{triag2.B_, triag2.C_},
-              CA2{triag2.C_, triag2.A_};
+    std::vector<segment_t> segments{{A_, B_}, {B_, C_}, {C_, A_}, {triag2.A_, triag2.B_}, {triag2.B_, triag2.C_}, {triag2.C_, triag2.A_}};
 
-    return AB1.intersects_seg(AB2) ||
-           AB1.intersects_seg(BC2) ||
-           AB1.intersects_seg(CA2) ||
-           BC1.intersects_seg(AB2) ||
-           BC1.intersects_seg(BC2) ||
-           BC1.intersects_seg(CA2) ||
-           CA1.intersects_seg(AB2) ||
-           CA1.intersects_seg(BC2) ||
-           CA1.intersects_seg(CA2);
+    for (int i = 0; i < 3; ++i)
+        for (int j = 3; j < 6; ++j)
+            if (segments[i].intersects_seg(segments[j]))
+                return true;
+
+    return false;
 }
 
 
@@ -321,10 +317,3 @@ segment_t triangle_t::get_triag_intersection(const line_t &line) const
     if (p1 == p2) return {p1, p3};
     return {p1, p2};
 }
-
-
-point_t triangle_t::getA() const { return A_; }
-point_t triangle_t::getB() const { return B_; }
-point_t triangle_t::getC() const { return C_; }
-
-plane_t triangle_t::get_plane() const { return pln_; }

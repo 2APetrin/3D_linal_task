@@ -6,18 +6,13 @@
 #include <cmath>
 
 using namespace geometry;
-
-
-line_t::line_t(const vector_t &dir_vec, const point_t &line_pnt) : dir_vec_(dir_vec), line_pnt_(line_pnt), p1_(dir_vec_.get_x()), p2_(dir_vec_.get_y()), p3_(dir_vec_.get_z()) {}
+using namespace doperations;
 
 
 bool line_t::operator== (const line_t &line2) const
 {
     return (dir_vec_.vec_product(line2.dir_vec_) == NULL_VEC) && check_point_belong(line2.line_pnt_);
 }
-
-
-bool line_t::is_valid() const { return dir_vec_.is_valid() && line_pnt_.is_valid(); }
 
 
 bool line_t::check_point_belong(const point_t &pnt) const
@@ -94,11 +89,6 @@ point_t line_t::get_line_intersection(const line_t &line2) const
     if (line2.check_point_belong(pnt)) return pnt;
     return NAN_PNT;
 }
-
-
-vector_t line_t::get_dir_vec() const { return dir_vec_; }
-
-point_t  line_t::get_line_pnt() const { return line_pnt_; }
 
 
 void line_t::print() const

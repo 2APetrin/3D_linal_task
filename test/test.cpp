@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "triangle.hpp"
+#include "double_operations.hpp"
 #include "vector.hpp"
 
-using namespace std;
 using namespace geometry;
+using namespace doperations;
+
 
 TEST(point_test, basic_pnt)
 {

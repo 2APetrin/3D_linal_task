@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 
+namespace custom_assert {
+
 #ifndef RELEASE
 
 #define ASSERT(cond)                      \
@@ -18,3 +20,5 @@ if (!(cond))                               \
 #define ASSERT(cond) 
 #undef RELRASE
 #endif
+
+}

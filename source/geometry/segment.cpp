@@ -4,12 +4,7 @@
 #include "double_operations.hpp"
 
 using namespace geometry;
-
-
-segment_t::segment_t(const point_t &first, const point_t &second) : first_(first), second_(second) {}
-
-
-bool segment_t::is_valid() const { return first_.is_valid() && second_.is_valid(); }
+using namespace doperations;
 
 
 bool segment_t::contains_inter_pnt(const point_t &pnt) const
@@ -86,11 +81,3 @@ void segment_t::print() const
     first_.print();
     second_.print();
 }
-
-
-vector_t segment_t::get_dir_vec() const { return dir_vec_; }
-
-line_t segment_t::get_seg_line() const {return seg_line_; }
-
-const point_t& segment_t::get_fst() const { return first_; }
-const point_t& segment_t::get_snd() const { return second_; }

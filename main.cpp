@@ -35,18 +35,17 @@ int main()
             point_t p3{a, b, c};
 
             triags.push_back(octrees::triag_id_t{triangle_t{p1, p2, p3}, i});
-            //triangle_t{p1, p2, p3}.print();
         }
     }
     else
         std::cerr << "Triangle number should be greater than 0" << std::endl;
 
-    //const std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now();
+    /* const std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now(); */
 
     octrees::octree_t octree(triags);
-    //std::cout << "TREE CONSTRUCTED\n";
+    /* std::cout << "TREE CONSTRUCTED\n";
 
-    /* const auto octree_end = std::chrono::high_resolution_clock::now();
+    const auto octree_end = std::chrono::high_resolution_clock::now();
     std::cout << "octree time = " << std::chrono::duration_cast<std::chrono::milliseconds>(octree_end - start).count() / 1000.0 << std::endl; */
 
     std::vector<bool> answer;
@@ -64,7 +63,7 @@ int main()
     for (int i = 0; i < triag_num; i++)
         if(answer[i]) std::cout << i << std::endl;
 
-    //std::cout << "all time in sec - " << s << std::endl;
+    /* std::cout << "all time in sec - " << s << std::endl; */
 
     return 0;
 }

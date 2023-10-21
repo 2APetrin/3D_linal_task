@@ -21,9 +21,9 @@ class segment_t
     */
     bool contains_inter_pnt(const point_t &pnt) const;
 
-    segment_t(const point_t &first, const point_t &second);
+    segment_t(const point_t &first, const point_t &second) : first_(first), second_(second) {}
 
-    bool is_valid() const;
+    bool is_valid() const { return first_.is_valid() && second_.is_valid(); }
 
     /**
      * \brief works correctly only if segments are lying on the same line
@@ -42,14 +42,14 @@ class segment_t
 
     point_t get_plane_intersection(const plane_t &pln) const;
 
-    vector_t get_dir_vec() const;
+    vector_t get_dir_vec() const { return dir_vec_; }
 
-    line_t get_seg_line() const;
+    line_t get_seg_line() const { return seg_line_; }
 
     void print() const;
 
-    const point_t& get_fst() const;
-    const point_t& get_snd() const;
+    const point_t& get_fst() const { return first_; }
+    const point_t& get_snd() const { return second_; }
 };
 
 }

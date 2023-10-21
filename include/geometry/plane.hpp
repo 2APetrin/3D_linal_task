@@ -2,7 +2,6 @@
 
 #include "line.hpp"
 
-
 namespace geometry {
 
 enum mutual_pos
@@ -23,7 +22,7 @@ class plane_t
 
     plane_t(const vector_t &norm_vec, const point_t &plane_pnt);
 
-    bool is_valid() const;
+    bool is_valid() const { return norm_vec_.is_valid() && plane_pnt_.is_valid(); }
 
     mutual_pos get_mutual_pos_type(const plane_t &pln, const point_t &pnt) const;
 
@@ -36,12 +35,12 @@ class plane_t
     void print() const;
 
 
-    double get_a() const;
-    double get_b() const;
-    double get_c() const;
-    double get_d() const;
+    double get_a() const { return a_; }
+    double get_b() const { return b_; }
+    double get_c() const { return c_; }
+    double get_d() const { return d_; }
 
-    vector_t get_norm() const;
+    vector_t get_norm() const { return norm_vec_; }
 };
 
 }

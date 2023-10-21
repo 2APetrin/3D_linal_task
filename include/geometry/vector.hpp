@@ -1,7 +1,8 @@
 #pragma once
 
-#include "double_operations.hpp"
 #include "point.hpp"
+#include <iostream>
+
 
 namespace geometry {
 
@@ -11,10 +12,11 @@ class vector_t
 
     public:
 
-    vector_t(double x = NAN, double y = NAN, double z = NAN);
-    vector_t(const point_t  &pnt);
+    vector_t(double x = NAN, double y = NAN, double z = NAN) : x_(x), y_(y), z_(z) {}
+    vector_t(const point_t  &pnt) : x_(pnt.get_x()), y_(pnt.get_y()), z_(pnt.get_z()) {}
 
-    bool is_valid() const;
+    bool is_valid() const { return (std::isfinite(x_) && std::isfinite(y_) && std::isfinite(z_)); }
+
 
     bool operator== (const vector_t &vec2) const;
     bool operator!= (const vector_t &vec2) const;
@@ -30,10 +32,10 @@ class vector_t
     vector_t normalized() const;
 
 
-    void   print() const;
-    double get_x() const;
-    double get_y() const;
-    double get_z() const;
+    void   print() const { std::cout << "(" << x_ << ", " << y_ << ", " << z_ << ")" << std::endl; }
+    double get_x() const { return x_; }
+    double get_y() const { return y_; }
+    double get_z() const { return z_; }
 };
 
 const vector_t NULL_VEC = vector_t{0, 0, 0};
