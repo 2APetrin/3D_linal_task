@@ -1,6 +1,6 @@
 #!/bin/bash
 
-obj="build/source/triag"
+obj="build/src/triag"
 
 test_files_names=("01.dat" "02.dat" "03.dat" "04.dat" "05.dat" "06.dat" "07.dat" "08.dat" "09.dat" "10.dat" "11.dat" "12.dat" "tst1.dat")
 tests_folder="test/tests/"
@@ -14,6 +14,6 @@ echo "diffs with expected answers:"
 echo
 for i in ${!test_files_names[@]}; do
     echo $i
-    ${obj} < ${tests_folder}${test_files_names[$i]} > ${answers_folder}${answer_files_names[$i]}
+    time ${obj} < ${tests_folder}${test_files_names[$i]} > ${answers_folder}${answer_files_names[$i]}
     diff ${correct_answers_folder}${answer_files_names[$i]} ${answers_folder}${answer_files_names[$i]}
 done

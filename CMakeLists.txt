@@ -16,11 +16,11 @@ endif()
 find_package(GTest REQUIRED)
 enable_testing()
 
-add_subdirectory(./source)
+add_subdirectory(./src)
 add_subdirectory(./test)
 
-target_include_directories(triag     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/geometry)
-target_include_directories(test_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/geometry)
+target_include_directories(triag     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc/geometry)
+target_include_directories(test_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc/geometry)
 
-target_include_directories(triag     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_include_directories(test_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(triag     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+target_include_directories(test_main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)

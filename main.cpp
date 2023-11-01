@@ -35,6 +35,7 @@ int main()
             point_t p3{a, b, c};
 
             triags.push_back(octrees::triag_id_t{triangle_t{p1, p2, p3}, i});
+            //triangle_t{p1, p2, p3}.print();
         }
     }
     else
