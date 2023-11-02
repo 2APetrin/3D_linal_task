@@ -62,7 +62,6 @@ class triangle_t
 
     bool intersects(const triangle_t &triag2) const;
 
-
     void print() const;
 
     point_t getA() const { return A_; }

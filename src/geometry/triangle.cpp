@@ -143,10 +143,8 @@ bool triangle_t::intersects_triag_point(const triangle_t &triag2) const
 bool triangle_t::intersects_triag_segment(const triangle_t &triag2) const
 {
     segment_t seg = triag2.get_segment();
-    //seg.print();
 
     point_t pnt = pln_.get_line_intersection(seg.get_seg_line());
-    //pnt.print();
 
     if ( pnt.special_check() )
     {
@@ -289,20 +287,27 @@ segment_t triangle_t::get_triag_intersection(const line_t &line) const
               BC{B_, C_},
               CA{C_, A_};
 
+
     point_t p1{AB.get_line_intersection(line)};
+
     if (p1.is_valid()) valid_cnt++;
     else if (p1.special_check())
         return AB;
 
+
     point_t p2{BC.get_line_intersection(line)};
+
     if (p2.is_valid()) valid_cnt++;
     else if (p2.special_check())
         return BC;
 
+
     point_t p3{CA.get_line_intersection(line)};
+
     if (p3.is_valid()) valid_cnt++;
     else if (p3.special_check())
         return CA;
+
 
     if (valid_cnt < 2) return {NAN_PNT, NAN_PNT};
 

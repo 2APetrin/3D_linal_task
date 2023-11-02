@@ -77,7 +77,7 @@ struct max_min_crds_t
         if (z > z_max) z_max = z;
     }
 
-    void print()
+    void print() const
     {
         std::cout << "xmin = " << x_min << "\nxmax = " << x_max << "\n";
         std::cout << "ymin = " << y_min << "\nymax = " << y_max << "\n";
@@ -107,6 +107,7 @@ public:
     size_t       triag_num_ = 0;
     triag_vector triags_;
 
+/*==========================================================================*/
 
     node_t(node_t* parent, node_position pos, triag_vector triags, std::list<node_t> &nodes) : parent_(parent), pos_(pos), triags_(triags)
     {
@@ -140,6 +141,7 @@ public:
         }
     }
 
+/*==========================================================================*/
 
     void print() const
     {
@@ -158,6 +160,8 @@ public:
 
         triangle_vectors_[triag_pos].push_back(triag);
     }
+
+/*==========================================================================*/
 
     cube_positions check_triangle(triag_id_t triag) const
     {
@@ -189,40 +193,33 @@ public:
         return static_cast<cube_positions>(ret);
     }
 
+/*==========================================================================*/
 
     void get_collisions(std::vector<bool> &answer)
     {
         if (isleaf_)
         {
-            for (auto it = triags_.begin(), ite = triags_.end(); it != ite; ++it)
-            {
-                for (auto jt = std::next(it), jte = triags_.end(); jt != jte; jt++)
-                {
-                    if (it->triag.intersects(jt->triag))
-                    {
+            for (auto it = triags_.begin(), ite = triags_.end(); it != ite; ++it) {
+                for (auto jt = std::next(it), jte = triags_.end(); jt != jte; ++jt) {
+                    //std::cout << it->id << "-" << jt->id << std::endl;
+                    if (it->triag.intersects(jt->triag)) {
                         answer[it->id] = true;
                         answer[jt->id] = true;
-
                         //std::cout << it->id << "-" << jt->id << std::endl;
                     }
                 }
-            }
-            return;
+            } return;
         }
 
         for (int i = 0; i < child_num; i++)
             children_[i]->get_collisions(answer);
 
-        for (auto it = triangle_vectors_[child_num].begin(); it != triangle_vectors_[child_num].end(); it++)
-        {
-            for (auto jt = triags_.begin(); jt != triags_.end(); jt++)
-            {
+        for (auto it = triangle_vectors_[child_num].begin(), ite = triangle_vectors_[child_num].end(); it != ite; ++it) {
+            for (auto jt = triags_.begin(), jte = triags_.end(); jt != jte; ++jt) {
                 if (it->id == jt->id) continue;
-                if (it->triag.intersects(jt->triag))
-                {
+                if (it->triag.intersects(jt->triag)) {
                     answer[it->id] = true;
                     answer[jt->id] = true;
-
                     //std::cout << it->id << "-" << jt->id << std::endl;
                 }
             }
@@ -242,6 +239,7 @@ class octree_t
 
 public:
     std::set<triag_id_t> border_triags_;
+
 
     octree_t(triag_vector all_triags) : all_triags_(all_triags)
     {
@@ -265,15 +263,8 @@ public:
         root_ = &(*std::prev(nodes_.end()));
     }
 
-    void print()
-    {
-        root_->print(); 
-    }
-
-    void get_collisions(std::vector<bool> &answer)
-    {
-        root_->get_collisions(answer);
-    }
+    void print() const { root_->print(); }
+    void get_collisions(std::vector<bool> &answer) { root_->get_collisions(answer); }
 };
 
 }
