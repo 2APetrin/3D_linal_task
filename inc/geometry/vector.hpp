@@ -30,7 +30,7 @@ class vector_t
     double get_squared_len() const;
 
     vector_t normalized() const;
-
+    vector_t negative() const { return {-x_, -y_, -z_}; }
 
     void   print() const { std::cout << "(" << x_ << ", " << y_ << ", " << z_ << ")" << std::endl; }
     double get_x() const { return x_; }

@@ -210,7 +210,10 @@ bool triangle_t::check_triags_in_same_plane(const triangle_t &triag2) const
     bool cond1 = triag2.is_in_triag(A_) ||
                  triag2.is_in_triag(B_) ||
                  triag2.is_in_triag(C_);
-    if (cond1) return true;
+    bool cond2 = is_in_triag(triag2.A_) ||
+                 is_in_triag(triag2.B_) ||
+                 is_in_triag(triag2.C_);
+    if (cond1 || cond2) return true;
 
     std::vector<segment_t> segments{{A_, B_}, {B_, C_}, {C_, A_}, {triag2.A_, triag2.B_}, {triag2.B_, triag2.C_}, {triag2.C_, triag2.A_}};
 

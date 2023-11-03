@@ -29,15 +29,14 @@ using triag_vector = std::vector<triag_id_t>;
 struct node_position
 {
     double x_, y_, z_;
-    double x_rad_, y_rad_, z_rad_;
+    double rad_;
 
-    node_position(double x, double y, double z, double x_rad, double y_rad, double z_rad) :
-    x_(x), y_(y), z_(z), x_rad_(x_rad), y_rad_(y_rad), z_rad_(z_rad) {}
+    node_position(double x, double y, double z, double rad) :
+    x_(x), y_(y), z_(z), rad_(rad){}
 
     void print() const
     {
-        std::cout << "center   = (" << x_ << ", " << y_ << ", " << z_ << ")\n";
-        //std::cout << "radiuses = " << x_rad_ << ", " << y_rad_ << ", " << z_rad_ << "\n";
+        std::cout << "center = (" << x_ << ", " << y_ << ", " << z_ << ")\nradius = " << rad_ << std::endl;
     }
 };
 
@@ -77,6 +76,16 @@ struct max_min_crds_t
         if (z > z_max) z_max = z;
     }
 
+    double get_meanx() const { return (x_max + x_min)/2; }
+    double get_meany() const { return (y_max + y_min)/2; }
+    double get_meanz() const { return (z_max + z_min)/2; }
+
+    double get_rad() const
+    {
+        double xlen = x_max - x_min, ylen = y_max - y_min, zlen = z_max - z_min;
+        return triple_max(xlen, ylen, zlen)/2; 
+    }
+
     void print() const
     {
         std::cout << "xmin = " << x_min << "\nxmax = " << x_max << "\n";
@@ -113,26 +122,25 @@ public:
     {
         triag_num_ = triags.size();
 
-        if (triag_num_ < SIZE_OF_PART)
-            return;
+        if (triag_num_ < SIZE_OF_PART){ /* print(); */ return; }
 
         isleaf_ = false;
 
         isleaf_ = false;
 
-        double next_xrad = pos_.x_rad_ / 2;
-        double next_yrad = pos_.y_rad_ / 2;
-        double next_zrad = pos_.z_rad_ / 2;
+        double next_rad = pos_.rad_ / 2;
 
         std::vector<node_position> children_pos;
 
         for (int i = 0; i < child_num; ++i)
-            children_pos.push_back({pos_.x_ + ((i & (1 << 0)) ? -next_xrad : next_xrad),
-                                    pos_.y_ + ((i & (1 << 1)) ? -next_yrad : next_yrad),
-                                    pos_.z_ + ((i & (1 << 2)) ? -next_zrad : next_zrad),
-                                    next_xrad, next_yrad, next_zrad});
+            children_pos.push_back({pos_.x_ + ((i & (1 << 0)) ? -next_rad : next_rad),
+                                    pos_.y_ + ((i & (1 << 1)) ? -next_rad : next_rad),
+                                    pos_.z_ + ((i & (1 << 2)) ? -next_rad : next_rad),
+                                    next_rad});
 
         for (auto it = triags_.begin(), ite = triags_.end(); it != ite; ++it) triag_emplace(*it);
+
+        //print();
 
         for (int i = 0; i < child_num; ++i)
         {
@@ -201,11 +209,10 @@ public:
         {
             for (auto it = triags_.begin(), ite = triags_.end(); it != ite; ++it) {
                 for (auto jt = std::next(it), jte = triags_.end(); jt != jte; ++jt) {
-                    //std::cout << it->id << "-" << jt->id << std::endl;
+
                     if (it->triag.intersects(jt->triag)) {
                         answer[it->id] = true;
                         answer[jt->id] = true;
-                        //std::cout << it->id << "-" << jt->id << std::endl;
                     }
                 }
             } return;
@@ -217,10 +224,10 @@ public:
         for (auto it = triangle_vectors_[child_num].begin(), ite = triangle_vectors_[child_num].end(); it != ite; ++it) {
             for (auto jt = triags_.begin(), jte = triags_.end(); jt != jte; ++jt) {
                 if (it->id == jt->id) continue;
+
                 if (it->triag.intersects(jt->triag)) {
                     answer[it->id] = true;
                     answer[jt->id] = true;
-                    //std::cout << it->id << "-" << jt->id << std::endl;
                 }
             }
         }
@@ -256,8 +263,7 @@ public:
             min_max.update(C.get_x(), C.get_y(), C.get_z());
         }
 
-        node_position pos{(min_max.x_max + min_max.x_min)/2, (min_max.y_max + min_max.y_min)/2, (min_max.z_max + min_max.z_min)/2,
-                          (min_max.x_max - min_max.x_min)/2, (min_max.y_max - min_max.y_min)/2, (min_max.z_max - min_max.z_min)/2};
+        node_position pos{min_max.get_meanx(), min_max.get_meany(), min_max.get_meanz(), min_max.get_rad()};
 
         nodes_.push_back(detail::node_t{nullptr, pos, all_triags_, nodes_});
         root_ = &(*std::prev(nodes_.end()));

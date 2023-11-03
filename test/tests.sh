@@ -13,7 +13,9 @@ correct_answers_folder="test/correct_answers/"
 echo "diffs with expected answers:" 
 echo
 for i in ${!test_files_names[@]}; do
-    #echo $i
+    echo
+    echo
+    echo ${test_files_names[i]}
     time ${obj} < ${tests_folder}${test_files_names[$i]} > ${answers_folder}${answer_files_names[$i]}
     diff ${correct_answers_folder}${answer_files_names[$i]} ${answers_folder}${answer_files_names[$i]}
 done
